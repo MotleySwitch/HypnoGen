@@ -16,7 +16,7 @@ export function useRender(zIndex: number, render: (ctx: CanvasRenderingContext2D
 
 	React.useEffect(() => {
 		const id = context.nextRenderId++
-		context.renders.push([id, render, zIndex])
+		context.renders.push([id, (ctx, canvas) => renderer.current(ctx, canvas), zIndex])
 		context.renders.sort(([_, __, z1], [___, ____, z2]) => z1 - z2)
 
 		return () => { context.renders.splice(context.renders.findIndex(([t, _, __]) => t !== id, 1)) }

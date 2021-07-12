@@ -89,7 +89,7 @@ export default function Pattern({ timer, play, pattern, speed, colors, zIndex }:
 		if (context != null) {
 			context.clear()
 
-			if (pattern && buffer != null && buffer.ok() && program != null && program.ok()) {
+			if (buffer != null && buffer.ok() && program != null && program.ok()) {
 				buffer.bind()
 
 				const now = Date.now() / 1000
@@ -104,6 +104,7 @@ export default function Pattern({ timer, play, pattern, speed, colors, zIndex }:
 
 	useRender(zIndex ?? 0, (canvasContext, canvas) => {
 		if (pattern) {
+			console.log(pattern)
 			canvasContext.drawImage(target, 0, 0, canvas.width, canvas.height)
 		}
 	})
