@@ -1,57 +1,43 @@
-import { Collapse, Fade, Grow, Slide, Typography, Zoom } from "@material-ui/core"
 import React from "react"
-import random from "../util/rand"
+import random from "../util/random"
 import useInterval from "../util/useInterval"
-import useScreenSize from "./useScreenSize"
+import AnimatedText from "./AnimatedText"
 
 export type SubliminalProps = {
+	readonly zIndex: number
 	readonly values: ReadonlyArray<string>
-	readonly speed: number
+	readonly speed?: number
 	readonly animation?: "collapse" | "fade" | "grow" | "slide" | "zoom"
+	readonly positionSelector?: (counter: number) => readonly [number, number]
 	readonly play?: boolean
-	readonly seed?: number
 	readonly spacing?: number
 }
 
-const getAnimation = (type?: "collapse" | "fade" | "grow" | "slide" | "zoom") => {
-	switch (type) {
-		case "collapse": return Collapse
-		case "fade": return Fade
-		case "grow": return Grow
-		case "slide": return Slide
-		case "zoom": return Zoom
-		default: return Fade
+export function RandomPosition(seed: number) {
+	return function (counter: number): readonly [number, number] {
+		const x = (random(seed, counter * 2) * 80 + 10) | 0
+		const y = (random(seed, counter * 2 + 1) * 80 + 10) | 0
+		return [x, y]
 	}
 }
 
-export default function Subliminal({ seed, play, values, speed, spacing, animation }: SubliminalProps) {
-	const subtick = speed * 333.3333
-	const Animate = getAnimation(animation)
+export default function Subliminal({ zIndex, play, values, speed, spacing, animation, positionSelector }: SubliminalProps) {
+	const subtick = (1000 / 4) / (speed || 1)
 	const [currentCounter, setCurrentCounter] = React.useState(0)
 	useInterval(() => {
-		if (play && values.length > 0) {
+		if ((speed ?? 1) > 0 && play && values.length > 0) {
 			setCurrentCounter(currentCounter + 1)
 		}
 	}, subtick)
 
-	const [direction, setDirection] = React.useState<"up" | "down" | "left" | "right">("up")
-	const [positionStyles, setPositionStyles] = React.useState<React.CSSProperties>({ display: "none" })
-	const [animationState, setAnimationState] = React.useState(2)
+	const [position, setPosition] = React.useState<readonly [number, number]>((positionSelector ?? RandomPosition(0))(0))
+	const [animationState, setAnimationState] = React.useState(0)
 	const [textFrame, setTextFrame] = React.useState(0)
 	React.useEffect(() => {
 		const step = currentCounter % (3 + (spacing ?? 0) * 3)
 		switch (step) {
 			case 0:
-				const x = random(seed ?? 0, currentCounter * 2) * 80 + 10
-				const y = random(seed ?? 0, currentCounter * 2 + 1) * 80 + 10
-				const lr: React.CSSProperties = x > 50 ? { right: `${x - 50}%` } : { left: `${x}%` }
-				const tb: React.CSSProperties = y > 50 ? { bottom: `${y - 50}%` } : { top: `${y}%` }
-				if (y > 50) {
-					setDirection("up")
-				} else {
-					setDirection("down")
-				}
-				setPositionStyles({ ...lr, ...tb })
+				setPosition((positionSelector ?? RandomPosition(0))(currentCounter))
 				setAnimationState(0)
 				setTextFrame(textFrame + 1)
 				break
@@ -68,23 +54,13 @@ export default function Subliminal({ seed, play, values, speed, spacing, animati
 				break;
 
 		}
-	}, [currentCounter, spacing, seed])
-
-	const screenSize = useScreenSize()
-	const fontSize = Math.min(Math.max(32, Math.min(...screenSize) / 25), 128)
+	}, [currentCounter, spacing])
 
 	return (values.length > 0 && values[textFrame % values.length]
-		? (<>
-			<Animate
-			    direction={direction}
-				in={animationState < 2} appear
-				timeout={{ appear: subtick / 3, enter: subtick / 3, exit: subtick / 3 }}>
-				<Typography
-					style={{ opacity: 0.75, fontSize: `${fontSize}px`, color: "white", position: "absolute", ...positionStyles }}
-					variant="body1">
-					{values[textFrame % values.length]}
-				</Typography>
-			</Animate>
-		</>)
+		? (
+			<AnimatedText speed={speed} zIndex={zIndex} show={animationState >= 0 && animationState < 2} x={position[0]} y={position[1]} animation={animation}>
+				{values[textFrame % values.length]}
+			</AnimatedText>
+		)
 		: <></>)
 }

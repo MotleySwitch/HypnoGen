@@ -49,7 +49,6 @@ export default class WebGLRef {
 
 	public render(programRef: ProgramRef, parameters: ShaderParams) {
 		const program = programRef.ref()
-
 		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 		this.gl.useProgram(program)
 
@@ -102,22 +101,33 @@ export default class WebGLRef {
 }
 
 export class ProgramRef {
+	private destroyed: boolean = false
+
 	constructor(private gl: WebGLRenderingContext, private program: WebGLProgram) {
 	}
 
 	public ref() { return this.program }
 
+	public ok() { return !this.destroyed }
+
 	public destroy() {
 		this.gl.deleteProgram(this.program)
+		this.destroyed = true
 	}
 }
 
 export class BufferRef {
+	private destroyed: boolean = false
+
 	constructor(private gl: WebGLRenderingContext, private buffer: WebGLBuffer) {
 	}
 
 	public ref() {
 		return this.buffer
+	}
+
+	public ok() {
+		return !this.destroyed
 	}
 
 	public bind() {
@@ -130,5 +140,6 @@ export class BufferRef {
 
 	public destroy() {
 		this.gl.deleteBuffer(this.buffer)
+		this.destroyed = true
 	}
 }

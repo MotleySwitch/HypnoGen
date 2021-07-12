@@ -6,7 +6,7 @@ export type QueryParams = {
 
 const SearchContext = React.createContext({
 	search: "",
-	setSearch: (setter: (value: string) => string) => { }
+	setSearch: (_: (value: string) => string) => { }
 })
 
 export const SearchProvider = ({ children }: { readonly children: React.ReactChild }) => {
@@ -15,12 +15,7 @@ export const SearchProvider = ({ children }: { readonly children: React.ReactChi
 	React.useEffect(() => { history.pushState(null, "", search) }, [search])
 
 	return (
-		<SearchContext.Provider value={{
-			search,
-			setSearch: (setter: (prev: string) => string) => {
-				setSearch(setter)
-			}
-		}}>
+		<SearchContext.Provider value={{ search, setSearch }}>
 			{children}
 		</SearchContext.Provider>
 	)
@@ -35,7 +30,7 @@ export function useSearch(): [string, (setter: (value: string) => string) => voi
 export function useQueryParams(): readonly [QueryParams, (key: string, value: readonly string[]) => void] {
 	function parseSearch(search: string) {
 		if (search.startsWith("?")) {
-			return search.substring(1).split("&").map(kv => {
+			return atob(search.substring(1)).split("&").map(kv => {
 				const [head, ...tail] = kv.split("=")
 				const key = decodeURIComponent(head)
 				const value = decodeURIComponent(tail.join("="))
@@ -53,7 +48,7 @@ export function useQueryParams(): readonly [QueryParams, (key: string, value: re
 	const setSearchParams = (key: string, value: readonly string[]) => {
 		setSearch((search: string) => {
 			const change = { ...parseSearch(search), [key]: value }
-			return `?${Object.keys(change).flatMap(key => (change[key] ?? []).map(value =>`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)).join("&")}`
+			return `?${btoa(Object.keys(change).flatMap(key => (change[key] ?? []).map(value =>`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)).join("&"))}`
 		})
 	}
 

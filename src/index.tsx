@@ -1,9 +1,11 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import App from "./App"
-import { SearchProvider } from "./util/useQuery"
 
-ReactDOM.render(<SearchProvider><App /></SearchProvider>, document.getElementById("root"))
+import Scaffold from "./Scaffold"
+
+const App = React.lazy(() => import("./App"))
+
+ReactDOM.render(<Scaffold><App /></Scaffold>, document.getElementById("root"))
 
 if (import.meta.hot) {
   import.meta.hot.accept()
