@@ -1,7 +1,8 @@
 import React from "react"
 import random from "../util/random"
+
 import useInterval from "../util/useInterval"
-import AnimatedText from "./AnimatedText"
+import useAnimatedText from "./useAnimatedText"
 
 export type SubliminalProps = {
 	readonly zIndex: number
@@ -11,6 +12,7 @@ export type SubliminalProps = {
 	readonly positionSelector?: (counter: number) => readonly [number, number]
 	readonly play?: boolean
 	readonly spacing?: number
+	readonly timer: () => number
 }
 
 export function RandomPosition(seed: number) {
@@ -21,14 +23,14 @@ export function RandomPosition(seed: number) {
 	}
 }
 
-export default function Subliminal({ zIndex, play, values, speed, spacing, animation, positionSelector }: SubliminalProps) {
-	const subtick = (1000 / 4) / (speed || 1)
+export default function Subliminal({ timer, zIndex, play, values, speed, spacing, animation, positionSelector }: SubliminalProps) {
 	const [currentCounter, setCurrentCounter] = React.useState(0)
 	useInterval(() => {
-		if ((speed ?? 1) > 0 && play && values.length > 0) {
-			setCurrentCounter(currentCounter + 1)
-		}
-	}, subtick)
+		let s = speed ?? 1
+
+		const counter = s * timer() * 3 | 0
+		setCurrentCounter(counter)
+	}, 10)
 
 	const [position, setPosition] = React.useState<readonly [number, number]>((positionSelector ?? RandomPosition(0))(0))
 	const [animationState, setAnimationState] = React.useState(0)
@@ -51,16 +53,20 @@ export default function Subliminal({ zIndex, play, values, speed, spacing, anima
 				break
 
 			default:
+				setAnimationState(3)
 				break;
 
 		}
 	}, [currentCounter, spacing])
 
-	return (values.length > 0 && values[textFrame % values.length]
-		? (
-			<AnimatedText speed={speed} zIndex={zIndex} show={animationState >= 0 && animationState < 2} x={position[0]} y={position[1]} animation={animation}>
-				{values[textFrame % values.length]}
-			</AnimatedText>
-		)
-		: <></>)
+	useAnimatedText({
+		speed,
+		zIndex,
+		show: animationState >= 0 && animationState <= 2,
+		x: position[0], y: position[1],
+		animation,
+		children: values.length > 0 ? values[textFrame % values.length] : ""
+	})
+
+	return <React.Fragment />
 }

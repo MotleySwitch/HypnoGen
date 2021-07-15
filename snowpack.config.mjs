@@ -6,7 +6,7 @@ export default {
       static: true
     },
     src: {
-      url: "/dist"
+      url: "/"
     },
   },
   plugins: [

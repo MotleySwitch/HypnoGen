@@ -104,7 +104,6 @@ export default function Pattern({ timer, play, pattern, speed, colors, zIndex }:
 
 	useRender(zIndex ?? 0, (canvasContext, canvas) => {
 		if (pattern) {
-			console.log(pattern)
 			canvasContext.drawImage(target, 0, 0, canvas.width, canvas.height)
 		}
 	})
