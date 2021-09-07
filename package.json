@@ -1,24 +1,25 @@
 {
   "scripts": {
-    "start": "snowpack dev",
-    "build": "snowpack build",
-    "test": "web-test-runner \"src/**/*.test.tsx\"",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
-    "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx}\""
+    "start": "webpack serve",
+    "build": "webpack",
+    "test": "web-test-runner \"src/**/*.test.tsx\""
   },
   "dependencies": {
     "@material-ui/core": "^4.12.1",
     "@types/gif.js": "^0.2.2",
+    "buffer": "^5.7.1",
+    "buttplug": "1.0.10",
     "gif.js": "^0.2.0",
     "material-ui-color": "^1.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
-    "@snowpack/plugin-dotenv": "^2.1.0",
-    "@snowpack/plugin-react-refresh": "^2.5.0",
-    "@snowpack/plugin-typescript": "^1.2.1",
-    "@snowpack/web-test-runner-plugin": "^0.2.2",
+    "@babel/cli": "^7.15.4",
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.4",
+    "@babel/preset-react": "^7.14.5",
+    "@babel/preset-typescript": "^7.15.0",
     "@testing-library/react": "^11.2.6",
     "@types/chai": "^4.2.17",
     "@types/mocha": "^8.2.2",
@@ -26,9 +27,15 @@
     "@types/react-dom": "^17.0.3",
     "@types/snowpack-env": "^2.3.3",
     "@web/test-runner": "^0.13.3",
+    "babel-loader": "^8.2.2",
     "chai": "^4.3.4",
-    "prettier": "^2.2.1",
-    "snowpack": "^3.3.7",
-    "typescript": "^4.2.4"
+    "core-js": "^3.17.2",
+    "react-hot-loader": "^4.13.0",
+    "regenerator-runtime": "^0.13.9",
+    "ts-loader": "^9.2.5",
+    "typescript": "^4.2.4",
+    "webpack": "^5.52.0",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.1.0"
   }
 }

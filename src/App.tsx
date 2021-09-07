@@ -1,9 +1,9 @@
 import { Dialog, Grid, makeStyles, Typography } from "@material-ui/core"
 import GIF from "gif.js"
 import React from "react"
+import HapticEditor from "./components/HapticEditor"
 import PatternEditor from "./components/PatternEditor"
 import SubliminalEditor from "./components/SubliminalEditor"
-import BackgroundImage from "./effects/BackgroundImage"
 import { Canvas } from "./effects/Canvas"
 import Pattern from "./effects/Pattern"
 import SubliminalText, { RandomPosition } from "./effects/SubliminalText"
@@ -32,11 +32,13 @@ export default function App() {
 	useInterval(() => { if (play) timer.current += 0.016 }, 16)
 
 	const gif = React.useRef<GIF | null>()
-	React.useEffect(() => { gif.current = new GIF({
-		background: "#000",
-		quality: 10,
-		repeat: 0
-	}) }, [])
+	React.useEffect(() => {
+		gif.current = new GIF({
+			background: "#000",
+			quality: 10,
+			repeat: 0
+		})
+	}, [])
 	const [recording, setRecording] = React.useState(false)
 	const postDraw = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
 		if (gif.current && recording) {
@@ -61,7 +63,7 @@ export default function App() {
 					setTimeout(() => {
 						setRecording(false)
 						console.log("Ending recording")
-	
+
 						current.on("progress", e => {
 							console.log("Saving", e)
 						})
@@ -94,7 +96,6 @@ export default function App() {
 
 	const play = !showDrawer
 
-
 	return (
 		<>
 			<Canvas className={classes.root} postDraw={postDraw}>
@@ -116,27 +117,31 @@ export default function App() {
 
 					<Grid container spacing={2} alignItems="center">
 						<Grid item xs={12}>
-							<Typography variant="h3">Background</Typography>
+							<Typography variant="h3" paragraph>Background</Typography>
 							<PatternEditor patterns={availableBackgrounds ?? []} pattern={selectedBackground} speed={backgroundSpeed} onChange={({ pattern, speed }) => {
 								setSelectedBackground(pattern)
 								setBackgroundSpeed(speed)
 							}} />
 						</Grid>
 						<Grid item xs={12}>
-							<Typography variant="h3">Foreground</Typography>
+							<Typography variant="h3" paragraph>Foreground</Typography>
 							<PatternEditor patterns={availableForegrounds ?? []} pattern={selectedForeground} speed={foregroundSpeed} onChange={({ pattern, speed }) => {
 								setSelectedForeground(pattern)
 								setForegroundSpeed(speed)
 							}} />
 						</Grid>
 						<Grid item xs={12}>
-							<Typography variant="h3">Subliminals</Typography>
+							<Typography variant="h3" paragraph>Subliminals</Typography>
 							<SubliminalEditor animation={subliminalAnimation} text={subliminalText} speed={subliminalSpeed} spacing={subliminalSpacing} onChange={({ animation, speed, spacing, text }) => {
 								setSubliminalAnimation(animation)
 								setSubliminalSpeed(speed)
 								setSubliminalSpacing(spacing)
 								setSubliminalText(text)
 							}} />
+						</Grid>
+						<Grid item xs={12}>
+							<Typography variant="h3" paragraph>Haptics</Typography>
+							<HapticEditor />
 						</Grid>
 					</Grid>
 				</div>
