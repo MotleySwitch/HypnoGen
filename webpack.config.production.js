@@ -2,7 +2,7 @@ const webpack = require("webpack")
 const path = require("path")
 
 module.exports = {
-    mode: "development",
+    mode: "production",
     resolve: {
         extensions: [".js", ".jsx", ".ts", ".tsx"],
     },
@@ -10,7 +10,7 @@ module.exports = {
     output: {
         filename: "index.js",
         path: path.resolve(__dirname, "docs"),
-        publicPath: "/docs/"
+        publicPath: "/HypnoGen/"
     },
     module: {
         rules: [

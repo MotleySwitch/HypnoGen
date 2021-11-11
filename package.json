@@ -2,6 +2,7 @@
   "scripts": {
     "start": "webpack serve",
     "build": "webpack",
+    "compile": "webpack --config webpack.config.production.js",
     "test": "web-test-runner \"src/**/*.test.tsx\""
   },
   "dependencies": {
