@@ -30,7 +30,6 @@ module.exports = {
         syncWebAssembly: true
     },
     plugins: [
-        new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
-        new webpack.HotModuleReplacementPlugin()
+        new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] })
     ]
 }

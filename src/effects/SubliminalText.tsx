@@ -25,6 +25,8 @@ export function RandomPosition(seed: number) {
 
 export default function Subliminal({ timer, zIndex, play, values, speed, spacing, animation, positionSelector }: SubliminalProps) {
 	const [currentCounter, setCurrentCounter] = React.useState(0)
+	const [textFrame, setTextFrame] = React.useState(0)
+
 	useInterval(() => {
 		let s = speed ?? 1
 
@@ -32,9 +34,16 @@ export default function Subliminal({ timer, zIndex, play, values, speed, spacing
 		setCurrentCounter(counter)
 	}, 10)
 
+	React.useEffect(() => {
+		if (timer() == 0) {
+			console.log(values)
+			setCurrentCounter(0)
+			setTextFrame(0)
+		}
+	}, [timer()])
+
 	const [position, setPosition] = React.useState<readonly [number, number]>((positionSelector ?? RandomPosition(0))(0))
 	const [animationState, setAnimationState] = React.useState(0)
-	const [textFrame, setTextFrame] = React.useState(0)
 	React.useEffect(() => {
 		const step = currentCounter % (3 + (spacing ?? 0) * 3)
 		switch (step) {

@@ -7,6 +7,7 @@ import SubliminalEditor from "./components/SubliminalEditor"
 import { Canvas } from "./effects/Canvas"
 import Pattern from "./effects/Pattern"
 import SubliminalText, { RandomPosition } from "./effects/SubliminalText"
+import { useButtplugDevices, useButtplugVibrate } from "./util/Buttplug"
 import onKeyboard, { KeyState } from "./util/onKeyboard"
 import useInterval from "./util/useInterval"
 import useJsonFile from "./util/useJsonFile"
@@ -52,28 +53,21 @@ export default function App() {
 		if (state == KeyState.Up && code === "Escape") {
 			setShowDrawer(!showDrawer)
 		} else if (!showDrawer) {
-			console.log(state, code)
-
 			const current = gif.current
 			if (current && state === KeyState.Up && code === "KeyR") {
 				if (!recording) {
 					setRecording(true)
 					timer.current = 0
-					console.log("Starting recording")
 					setTimeout(() => {
 						setRecording(false)
-						console.log("Ending recording")
-
 						current.on("progress", e => {
-							console.log("Saving", e)
 						})
 						current.on("finished", blob => {
-							console.log("Done")
 							window.open(URL.createObjectURL(blob))
 						})
 						current.render()
 						gif.current = new GIF()
-					}, 2000)
+					}, 8000)
 				} else {
 				}
 			}
@@ -94,7 +88,25 @@ export default function App() {
 	const [subliminalAnimation, setSubliminalAnimation] = useQueryString<"collapse" | "fade" | "grow" | "slide" | "zoom">("sb.anim", "fade")
 	const [subliminalText, setSubliminalText] = useQuery<string>("sb.text")
 
+	const [_v, vibrate] = useButtplugVibrate()
+	const devices = useButtplugDevices()
+
 	const play = !showDrawer
+
+	useInterval(() => {
+		if (devices.length === 0 || showDrawer) {
+			vibrate(0)
+			return
+		}
+
+		const speed = 0.25
+		const shift = -0.25
+		const min = 0.0
+		const max = 0.5
+		const mult = 1
+		const value = (1 + Math.cos(timer.current * speed)) / 2
+		vibrate(Math.min(max, Math.max(min, mult * (value + shift))))
+	}, 100)
 
 	return (
 		<>
