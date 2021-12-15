@@ -28,7 +28,7 @@ export default function PatternEditor({ patterns, pattern, speed, onChange }: {
                     <Grid item xs>
                         <Slider
                             value={speed}
-                            min={0} max={2} step={0.25}
+                            min={0} max={6} step={0.25}
                             onChange={(_, e) => { onChange({ pattern, speed: e as number}) }} />
                     </Grid>
                     <Grid item>
