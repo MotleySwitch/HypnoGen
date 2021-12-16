@@ -92,9 +92,11 @@ const colours = {
 	cornflowerBlue: rgb(100, 149, 237),
 	amethyst: rgb(178, 76, 229),
 	emerald: rgb(80, 200, 120),
+	paleyellow: rgb(246, 240, 224),
 	pink: rgb(255, 192, 203),
 	magenta: rgb(255, 0, 255),
 	yellow: rgb(255, 255, 0),
+	darkred: rgb(127, 0, 0),
 	red: rgb(255, 0, 0),
 	green: rgb(0, 255, 0),
 	blue: rgb(0, 0, 255),
@@ -110,35 +112,40 @@ export default function App() {
 	onKeyboard(async (state, code) => {
 		if (state === KeyState.Up && code === "KeyR" && canvasRef.current) {
 			const targetScreen = canvasRef.current!
-			targetScreen.width = 640
-			targetScreen.height = 349
+			targetScreen.width = 620
+			targetScreen.height = 360
 
 			const targetBuffer = document.createElement("canvas")
 			targetBuffer.width = targetScreen.width
 			targetBuffer.height = targetScreen.height
 
-			const targetShader = document.createElement("canvas")
-			targetShader.width = targetBuffer.width
-			targetShader.height = targetBuffer.height
+			const targetEyeShader = document.createElement("canvas")
+			targetEyeShader.width = 300
+			targetEyeShader.height = 300
+			
+			const targetBackgroundShader = document.createElement("canvas")
+			targetBackgroundShader.width = targetScreen.width
+			targetBackgroundShader.height = targetScreen.height
 
-			const context3d = new WebGLRef(targetShader)
-			const [buffer3d, shader3d] = await createPatternShader(context3d, "shaders/spiral.vs", `shaders/full-inwards.fs`)
+			const eyeContext3d = new WebGLRef(targetEyeShader)
+			const [eyeBuffer, eyeShader] = await createPatternShader(eyeContext3d, "shaders/spiral.vs", `shaders/full-sharded-pulse.fs`)
+			const bgContext3d = new WebGLRef(targetBackgroundShader)
+			//const [bgBuffer, bgShader] = await createPatternShader(bgContext3d, "shaders/spiral.vs", `shaders/pendulum-oval.fs`)
 
-			const drone = await loadImage("./assets/drone.png")
-			const hexcorp = await loadImage("./assets/hexcorplogo.png")
-			const eyes = await loadImage("./assets/eyes.png")
-			const video = await loadVideo("./assets/untitled.webm")
+			const eyes_full = await loadImage("./assets/eyes.png")
+			const eyes_vacant = await loadImage("./assets/eyes-vacant.png")
+			const eyes_bg = await loadImage("./assets/eyes-background.png")
 			const targetVideo = document.createElement("canvas")
 			targetVideo.width = targetBuffer.width
 			targetVideo.height = targetBuffer.height
 
-			const flashText = ["GOOD TOYS DON'T THINK", "GOOD TOYS JUST SINK", "GOOD TOYS OBEY", "TRANCE THEIR MINDS AWAY"]
-			const flashTimer: [number, number, number, number] = [15, 5, 5, 5]
-			const flashPositions = ["top", "bottom", "top", "bottom"] as readonly ("top" | "center" | "bottom")[]
+			const flashText = ["TAKE THE HEALS", "HEALS GIVE ME PLEASURE", "HEALED FEELS GOOD", "FULL HEALTH IS BEST"]
+			const flashTimer: [number, number, number, number] = [9, 5, 5, 5]
+			const flashPositions = ["bottom", "top", "bottom", "top"] as readonly ("top" | "center" | "bottom")[]
 
-			const speed = 1
-			const fps = 30
-			const totalFrames = flashTimer.reduce((p, c) => p + c, 0) * flashText.length
+			const speed = 2
+			const fps = 24
+			const totalFrames = 96//flashTimer.reduce((p, c) => p + c, 0) * flashText.length
 			const gif = new GIF({ background: "#000", quality: 5, repeat: 0 })
 
 			const frames: string[] = [];
@@ -146,22 +153,37 @@ export default function App() {
 				for (let frame = 0; frame < totalFrames; ++frame) {
 					const flashTextIndex = ((frame / (flashTimer.reduce((p, c) => p + c))) | 0) % flashText.length
 					await defer(async () => {
-						if (context3d != null) {
-							context3d.clear()
-
-							if (buffer3d != null && buffer3d.ok() && shader3d != null && shader3d.ok()) {
-								buffer3d.bind()
-								const frameDt = interpolate("linear", 0.0, totalFrames, frame / totalFrames)
-								renderSpiralShaderToCanvas(targetShader, frameDt, {
-									colors: {
-										bgColor:  colours.transparent,
-										fgColor: interpolate("cosine-reverse", colours.magenta, colours.amethyst, frame / totalFrames)
-									},
-									shader: shader3d,
-									fps
-								})
-							}
+						eyeContext3d.clear()
+						if (eyeBuffer != null && eyeBuffer.ok() && eyeShader != null && eyeShader.ok()) {
+							eyeBuffer.bind()
+							const frameDt = interpolate("linear", 0.0, totalFrames, frame / totalFrames)
+							renderSpiralShaderToCanvas(targetEyeShader, frameDt, {
+								colors: {
+									bgColor:  colours.transparent,
+									fgColor: colours.red,
+									dimColor: colours.amethyst,
+									pulseColor: colours.magenta
+								},
+								shader: eyeShader,
+								fps
+							})
 						}
+						
+						/*bgContext3d.clear()
+						if (bgBuffer != null && bgBuffer.ok() && bgBuffer != null && bgBuffer.ok()) {
+							bgBuffer.bind()
+							const frameDt = interpolate("linear", 0.0, totalFrames, frame / totalFrames) / 2
+							renderSpiralShaderToCanvas(targetBackgroundShader, frameDt, {
+								colors: {
+									bgColor:  colours.transparent,
+									fgColor: colours.black,
+									dimColor: colours.amethyst,
+									pulseColor: colours.magenta
+								},
+								shader: bgShader,
+								fps
+							})
+						}*/
 
 						const canvasContext = targetBuffer.getContext("2d")!
 						canvasContext.save()
@@ -173,33 +195,51 @@ export default function App() {
 						//await renderVideoToCanvas(targetVideo, frame, video, { fps })
 						//canvasContext.drawImage(targetVideo, 0, 0, targetBuffer.width, targetBuffer.height)
 
-						renderImageToCanvas(targetBuffer, { image: eyes, styles: { alpha: 0.10 } })
+						//renderImageToCanvas(targetBuffer, { image: hexcorp, styles: { alpha: 0.25 } })
+
+
+						renderImageToCanvas(targetBuffer, { image: eyes_bg, styles: { alpha: 1.0, padding: 100 } })
+
+						canvasContext.save()
+						canvasContext.arc(135, 200, 32, 0, Math.PI * 2, true)
+						canvasContext.closePath()
+						canvasContext.clip()
+						canvasContext.drawImage(targetEyeShader, -28, 50, targetEyeShader.width, targetEyeShader.height)
+						canvasContext.restore()
+
+						canvasContext.save()
+						canvasContext.arc(485, 200, 32, 0, Math.PI * 2, true)
+						canvasContext.closePath()
+						canvasContext.clip()
+						canvasContext.drawImage(targetEyeShader, 318, 50, targetEyeShader.width, targetEyeShader.height)
+						canvasContext.restore()
+
+						renderImageToCanvas(targetBuffer, { image: eyes_vacant, styles: { alpha: 1.0, padding: 100 } })
+						
+						canvasContext.save()
+						canvasContext.drawImage(targetBackgroundShader, 0, 0, targetBackgroundShader.width, targetBackgroundShader.height)
+						canvasContext.restore()
+
 						renderFlashImageToCanvas(targetBuffer, frame, {
-							images: [eyes],
+							images: [eyes_full],
 							styles: {
-								alpha: 0.25
+								alpha: 0.75,
+								padding: 100
 							},
 							stageLengths: flashTimer
 						})
-						//renderImageToCanvas(targetBuffer, { image: hexcorp, styles: { alpha: 0.25 } })
 
-						canvasContext.save()
-						//canvasContext.filter = "blur(1px)"
-						canvasContext.drawImage(targetShader, 0, 0, targetBuffer.width, targetBuffer.height)
-						canvasContext.restore()
-
-
-						//renderFlashTextToCanvas(targetBuffer, frame, {
-						//	text: flashText,
-						//	style: {
-						//		lineWidth: 1,
-						//		size: 0.75,
-						//		fillColor: colours.white,
-						//		strokeColor: colours.blue,
-						//	},
-						//	stageLengths: flashTimer,
-						//	align: flashPositions
-						//})
+						renderFlashTextToCanvas(targetBuffer, frame, {
+							text: flashText,
+							style: {
+								lineWidth: 1,
+								size: 0.9,
+								fillColor: colours.white,
+								strokeColor: colours.black
+							},
+							stageLengths: flashTimer,
+							align: flashPositions
+						})
 					})
 
 					if (loops == 2) {
@@ -227,4 +267,5 @@ export default function App() {
 	const appStyles = useAppStyles()
 	return (<canvas ref={canvasRef} className={appStyles.root}></canvas>)
 }
+
 

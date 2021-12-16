@@ -2,6 +2,7 @@ export type BackgroundImageProps = {
 	readonly image: HTMLImageElement
 	readonly styles?: {
 		readonly alpha?: number
+		readonly padding?: number
 	}
 }
 
@@ -10,8 +11,8 @@ export function renderImageToCanvas(dom: HTMLCanvasElement, opts: BackgroundImag
 	const canvas = dom
 	const img = opts.image
 
-	const w = canvas.width / img.width
-	const h = canvas.height / img.height
+	const w = canvas.width / (img.width + (opts?.styles?.padding ?? 0))
+	const h = canvas.height / (img.height + (opts?.styles?.padding ?? 0))
 	const [tw, th] = ((): readonly [number, number] => {
 		if (w > h) {
 			return [canvas.width, img.height * w | 0]
@@ -31,6 +32,7 @@ export type FlashImageProps = {
 	readonly stageLengths?: readonly [number, number, number, number]
 	readonly styles?: {
 		readonly alpha?: number
+		readonly padding?: number
 	}
 }
 
@@ -45,14 +47,16 @@ export function renderFlashImageToCanvas(dom: HTMLCanvasElement, frame: number, 
 		renderImageToCanvas(dom, {
 			image,
 			styles: {
-				alpha: (framePosition - stageLengths[0]) / stageLengths[1] * (opts.styles?.alpha ?? 1)
+				alpha: (framePosition - stageLengths[0]) / stageLengths[1] * (opts.styles?.alpha ?? 1),
+				padding: opts.styles?.padding
 			}
 		})
 	} else if (framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
 		renderImageToCanvas(dom, {
 			image,
 			styles: {
-				alpha: (opts.styles?.alpha ?? 1)
+				alpha: (opts.styles?.alpha ?? 1),
+				padding: opts.styles?.padding
 			}
 		})
 	} else if (framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
@@ -61,6 +65,7 @@ export function renderFlashImageToCanvas(dom: HTMLCanvasElement, frame: number, 
 			image,
 			styles: {
 				alpha: (stageLengths[3] - pos) / stageLengths[3] * (opts.styles?.alpha ?? 1),
+				padding: opts.styles?.padding
 			}
 		})
 	} else {

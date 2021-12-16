@@ -118,6 +118,7 @@ export type FlashTextProps = {
 		readonly fillColor?: [number, number, number, number]
 		readonly size?: number
 		readonly lineWidth?: number
+		readonly offsetY?: number
 	}
 	readonly stageLengths?: readonly [number, number, number, number]
 	readonly align?: readonly ("center" | "top" | "bottom")[]
@@ -132,9 +133,9 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 
 	let y = 0.5
 	switch (align) {
-		case "center": y = 0.5; break;
-		case "top": y = 0.05; break;
-		case "bottom": y = 0.95; break;
+		case "center": y = 0.5 + (opts.style?.offsetY ?? 0); break;
+		case "top": y = 0.05 + (opts.style?.offsetY ?? 0); break;
+		case "bottom": y = 0.95 + (opts.style?.offsetY ?? 0); break;
 	}
 
 	if (framePosition < stageLengths[0]) {
