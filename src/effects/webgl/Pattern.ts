@@ -6,39 +6,56 @@ export type PatternColors = {
 	readonly fgColor: readonly [number, number, number, number],
 	readonly pulseColor: readonly [number, number, number, number],
 	readonly dimColor: readonly [number, number, number, number],
+	readonly extraColor: readonly [number, number, number, number],
 }
 
-export function renderSpiralShaderToCanvas(dom: HTMLCanvasElement, frame: number, opts: {
-    readonly shader: ProgramRef
-	readonly colors?: Partial<PatternColors>
-    readonly fps?: number
-}) {
-    const context = new WebGLRef(dom)
+export type PatternShader = readonly [BufferRef, ProgramRef, HTMLCanvasElement]
 
-    const params: ShaderParams = {
-        time: (frame / (opts.fps ?? 60)),
+export function renderSpiralShaderToCanvas(dom: HTMLCanvasElement, frame: number, opts: {
+	readonly shader: PatternShader
+	readonly colors?: Partial<PatternColors>
+	readonly fps?: number
+}) {
+	const src = opts.shader[2]
+	src.width = dom.width
+	src.height = dom.height
+
+	const context = new WebGLRef(src)
+	const params: ShaderParams = {
+		time: (frame / (opts.fps ?? 60)),
 		rotation: 1,
 		direction: 1,
 		branchCount: 4,
 
-		resolution: [dom.width, dom.height],
-		aspect: dom.width > dom.height ? [dom.width / dom.height, 1.0] : [1.0, dom.height / dom.width],
+		resolution: [src.width, src.height],
+		aspect: src.width > src.height ? [src.width / src.height, 1.0] : [1.0, src.height / src.width],
 
 		...({
 			bgColor: [0.0, 0.0, 0.0, 0.0],
 			fgColor: [1.0, 1.0, 1.0, 1.0],
 			pulseColor: [178 / 255, 76 / 255, 229 / 255, 1.0],
 			dimColor: [0.0, 0.0, 0.0, 0.0],
+			extraColor: [0.0, 0.0, 0.0, 0.0],
 			...(opts.colors ?? {})
 		}),
 	}
-    context.render(opts.shader, params)
+
+	context.clear()
+	opts.shader[0].bind()
+	context.render(opts.shader[1], params)
+
+	dom.getContext("2d")?.drawImage(src, 0, 0, dom.width, dom.height)
 }
 
-export async function createPatternShader(webgl: WebGLRef, vertexHref: string, fragmentHref: string): Promise<readonly [BufferRef, ProgramRef]> {
+export async function createPatternShader(source: HTMLCanvasElement, vertexHref: string, fragmentHref: string): Promise<PatternShader> {
+	const dom = document.createElement("canvas")
+	dom.width = source.width
+	dom.height = source.height
+
+	const webgl = new WebGLRef(dom)
 	const $vertex = fetch(vertexHref).then(r => { return r.text() })
 	const $fragment = fetch(fragmentHref).then(r => { return r.text() })
-	const [vertex, fragment] = await Promise.all([ $vertex, $fragment ])
+	const [vertex, fragment] = await Promise.all([$vertex, $fragment])
 
 	const buffer = webgl.createBuffer()
 	if (!buffer.ok()) {
@@ -49,5 +66,5 @@ export async function createPatternShader(webgl: WebGLRef, vertexHref: string, f
 	if (!program.ok()) {
 		console.error("failed to create program")
 	}
-	return [buffer, program]
+	return [buffer, program, dom]
 }

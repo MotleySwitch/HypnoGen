@@ -1,8 +1,9 @@
 import React from "react"
 
-export default function useRequestAnimationFrame(callback: () => void, props: unknown[] = []) {
+export default function useRequestAnimationFrame(callback: (frame: number) => void, props: unknown[] = []) {
     const fn = React.useRef(callback)
 
+	const frame = React.useRef(0)
     React.useEffect(() => { fn.current = callback }, [callback, ...props])
 
     React.useEffect(() => {
@@ -14,7 +15,8 @@ export default function useRequestAnimationFrame(callback: () => void, props: un
             }
 
             if (fn.current) {
-                fn.current()
+                fn.current(frame.current)
+                frame.current = frame.current + 1
             }
             id = requestAnimationFrame(loop)
         })

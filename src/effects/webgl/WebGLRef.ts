@@ -49,7 +49,6 @@ export default class WebGLRef {
 
 	public render(programRef: ProgramRef, parameters: ShaderParams) {
 		const program = programRef.ref()
-		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 		this.gl.useProgram(program)
 
 		Object.keys(parameters).forEach(key => {
