@@ -41,14 +41,14 @@ export function useQueryParams(): readonly [QueryParams, (key: string, value: re
 			return {}
 		}
 	}
-	
+
 	const [search, setSearch] = useSearch()
 	const value = React.useMemo(() => parseSearch(search), [search])
 
 	const setSearchParams = (key: string, value: readonly string[]) => {
 		setSearch((search: string) => {
 			const change = { ...parseSearch(search), [key]: value }
-			return `?${btoa(Object.keys(change).flatMap(key => (change[key] ?? []).map(value =>`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)).join("&"))}`
+			return `?${btoa(Object.keys(change).flatMap(key => (change[key] ?? []).map(value => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)).join("&"))}`
 		})
 	}
 
@@ -66,14 +66,20 @@ export function useQueryString<T extends string>(key: string, defaultValue: T): 
 	const [values, setValues] = useQuery<T>(key)
 	const value = values.length > 0 ? values[0] : defaultValue
 
-	return [value, next => setValues([next])]
+	return [value, next => { setValues([next]) }]
+}
+
+export function useQueryJson<T>(key: string, defaultValue: T): readonly [T, (value: T) => void] {
+	const [values, setValues] = useQuery(key)
+	const value = values.length > 0 ? values[0] : JSON.stringify(defaultValue)
+	const parsed = React.useMemo(() => JSON.parse(value) as T, [value])
+
+	return [parsed, next => { setValues([JSON.stringify(next)]) }]
 }
 
 export function useQueryNumber<T extends number>(key: string, defaultValue: T): readonly [T, (value: T) => void] {
 	const [value, setValue] = useQueryString<string>(key, defaultValue.toString())
 	const parsed = React.useMemo(() => parseFloat(value || defaultValue.toString()) as T, [value])
 
-	return [parsed, (next: T) => {
-		setValue(next.toString())
-	}]
+	return [parsed, (next: T) => { setValue(next.toString()) }]
 }

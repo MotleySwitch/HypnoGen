@@ -1,4 +1,4 @@
-import { toCssStringRGB } from "./Color"
+import { Color, toCssStringRGB } from "./Color"
 import type { PatternColors } from "./Pattern"
 import type { ProgramRef } from "./WebGLRef"
 
@@ -12,8 +12,8 @@ export type RenderFlashTextStep = {
     readonly align?: readonly string[]
 	readonly style?: {
 		readonly alpha?: number
-		readonly fillColor?: [number, number, number, number]
-		readonly strokeColor?: [number, number, number, number]
+		readonly fillColor?: Color
+		readonly strokeColor?: Color
 		readonly fonts?: readonly string[]
 	}
 }
@@ -75,7 +75,7 @@ export function clipRect(dom: HTMLCanvasElement, origin: readonly [number, numbe
 	context.restore()
 }
 
-export function fill(dom: HTMLCanvasElement, color: readonly [number, number, number, number]) {
+export function fill(dom: HTMLCanvasElement, color: Color) {
 	const context = dom.getContext("2d")!
     
     context.save()

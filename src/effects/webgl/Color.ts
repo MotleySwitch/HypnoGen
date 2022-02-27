@@ -1,3 +1,5 @@
+export type Color = readonly [number, number, number, number]
+
 export function toCssStringRGB(r: number, g: number, b: number, a?: number) {
     function componentToHex(c: number) {
         const hex = (c | 0).toString(16);
@@ -7,7 +9,7 @@ export function toCssStringRGB(r: number, g: number, b: number, a?: number) {
     return `#${componentToHex(r * 255)}${componentToHex(g * 255)}${componentToHex(b * 255)}`
 }
 
-export function clamp_rgba([r, g, b, a]: [number, number, number, number]): [number, number, number, number] {
+export function clamp_rgba([r, g, b, a]: Color): Color {
 	return [
 		Math.min(1, Math.max(0, r)),
 		Math.min(1, Math.max(0, g)),
@@ -16,17 +18,17 @@ export function clamp_rgba([r, g, b, a]: [number, number, number, number]): [num
 	]
 }
 
-export function rgba(r: number, g: number, b: number, a: number): [number, number, number, number] {
+export function rgba(r: number, g: number, b: number, a: number): Color {
 	return [r / 255, g / 255, b / 255, a / 255]
 }
-export function rgb(r: number, g: number, b: number): [number, number, number, number] {
+export function rgb(r: number, g: number, b: number): Color {
 	return [r / 255, g / 255, b / 255, 1]
 }
 
-export function fade(amount: number, [r, g, b, a]: [number, number, number, number]): [number, number, number, number] {
+export function fade(amount: number, [r, g, b, a]: Color): Color {
 	return [r, g, b, a * amount]
 }
-export function lighten(amount: number, [r, g, b, a]: [number, number, number, number]): [number, number, number, number] {
+export function lighten(amount: number, [r, g, b, a]: Color): Color {
 	return clamp_rgba([r * amount, g * amount, b * amount, a])
 }
 

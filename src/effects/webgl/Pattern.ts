@@ -1,12 +1,13 @@
+import type { Color } from "./Color"
 import type { BufferRef, ProgramRef, ShaderParams } from "./WebGLRef"
 import WebGLRef from "./WebGLRef"
 
 export type PatternColors = {
-	readonly bgColor: readonly [number, number, number, number],
-	readonly fgColor: readonly [number, number, number, number],
-	readonly pulseColor: readonly [number, number, number, number],
-	readonly dimColor: readonly [number, number, number, number],
-	readonly extraColor: readonly [number, number, number, number],
+	readonly bgColor: Color,
+	readonly fgColor: Color,
+	readonly pulseColor: Color,
+	readonly dimColor: Color,
+	readonly extraColor: Color,
 }
 
 export type PatternShader = readonly [BufferRef, ProgramRef, HTMLCanvasElement]
@@ -47,10 +48,10 @@ export function renderSpiralShaderToCanvas(dom: HTMLCanvasElement, frame: number
 	dom.getContext("2d")?.drawImage(src, 0, 0, dom.width, dom.height)
 }
 
-export async function createPatternShader(source: HTMLCanvasElement, vertexHref: string, fragmentHref: string): Promise<PatternShader> {
+export async function createPatternShader([width, height]: readonly [number, number], vertexHref: string, fragmentHref: string): Promise<PatternShader> {
 	const dom = document.createElement("canvas")
-	dom.width = source.width
-	dom.height = source.height
+	dom.width = width
+	dom.height = height
 
 	const webgl = new WebGLRef(dom)
 	const $vertex = fetch(vertexHref).then(r => { return r.text() })

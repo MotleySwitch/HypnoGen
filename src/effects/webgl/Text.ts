@@ -1,19 +1,21 @@
 import random, { hash } from "../../util/random"
-import { toCssStringRGB } from "./Color"
+import { Color, toCssStringRGB } from "./Color"
+
+export type TextStyle = {
+	readonly bold?: boolean
+	readonly lineWidth?: number
+	readonly alpha?: number
+	readonly size?: number
+	readonly fillColor?: Color
+	readonly strokeColor?: Color
+	readonly fonts?: readonly string[]
+}
 
 export type TextProps = {
 	readonly x: number
 	readonly y: number
 	readonly value: string
-	readonly style?: {
-		readonly bold?: boolean
-		readonly lineWidth?: number
-		readonly alpha?: number
-		readonly size?: number
-		readonly fillColor?: [number, number, number, number]
-		readonly strokeColor?: [number, number, number, number]
-		readonly fonts?: readonly string[]
-	}
+	readonly style?: TextStyle
 }
 
 export function renderTextToCanvas(dom: HTMLCanvasElement, { x, y, value, ...opts }: TextProps) {
@@ -63,22 +65,31 @@ export function renderTextToCanvas(dom: HTMLCanvasElement, { x, y, value, ...opt
 
 export type SubliminalProps = {
 	readonly text: readonly string[]
-	readonly scale?: number
-	readonly style?: {
-		readonly bold?: boolean
-		readonly lineWidth?: number
-		readonly alpha?: number
-		readonly size?: number
-		readonly fillColor?: [number, number, number, number]
-		readonly strokeColor?: [number, number, number, number]
-		readonly fonts?: readonly string[]
-	}
+	readonly style?: TextStyle
 	readonly stageLengths?: readonly [number, number, number, number]
 };
 
+export function renderSubliminalToCanvas(dom: HTMLCanvasElement, frame: number, opts: SubliminalProps) {
+	const stageLengths = opts.stageLengths ?? [5, 2, 3, 2]
+	const totalFramesLength = stageLengths.reduce((p, c) => p + c)
+	const index = (frame / totalFramesLength) | 0
+	const h = hash(opts.text.reduce((p, c) => `${p}:${c}`))
+	const [offsetX, offsetY] = [random(h, index * 2) - 0.5, random(h, index * 2 + 1) - 0.5]
+	renderFlashTextToCanvas(dom, frame, {
+		text: opts.text,
+		align: ["center"],
+		stageLengths: stageLengths,
+		style: {
+			...(opts.style ?? {}),
+			offsetX,
+			offsetY
+		}
+	})
+}
+
 export type FlashBoxProps = {
 	readonly style?: {
-		readonly backgroundColor?: [number, number, number, number]
+		readonly backgroundColor?: Color
 	}
 	readonly stageLengths?: readonly [number, number, number, number]
 }
@@ -116,19 +127,23 @@ export function renderFlashBoxToCanvas(dom: HTMLCanvasElement, frame: number, op
 }
 
 
+export type FlashTextStyle = {
+	readonly strokeColor?: Color
+	readonly fillColor?: Color
+	readonly size?: number
+	readonly lineWidth?: number
+	readonly offsetX?: number
+	readonly offsetY?: number
+	readonly bold?: boolean
+}
+
+export type FlashTextAlign = ("center" | "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right")
+
 export type FlashTextProps = {
 	readonly text: readonly string[]
-	readonly style?: {
-		readonly strokeColor?: [number, number, number, number]
-		readonly fillColor?: [number, number, number, number]
-		readonly size?: number
-		readonly lineWidth?: number
-		readonly offsetX?: number
-		readonly offsetY?: number
-		readonly bold?: boolean
-	}
+	readonly style?: FlashTextStyle
 	readonly stageLengths?: readonly [number, number, number, number]
-	readonly align?: readonly ("center" | "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right")[]
+	readonly align?: readonly FlashTextAlign[]
 }
 
 export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashTextProps) {
@@ -221,22 +236,4 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 	} else {
 
 	}
-}
-
-export function renderSubliminalToCanvas(dom: HTMLCanvasElement, frame: number, opts: SubliminalProps) {
-	const stageLengths = opts.stageLengths ?? [5, 2, 3, 2]
-	const totalFramesLength = stageLengths.reduce((p, c) => p + c)
-	const index = (frame / totalFramesLength) | 0
-	const h = hash(opts.text.reduce((p, c) => `${p}:${c}`))
-	const [offsetX, offsetY] = [random(h, index * 2) - 0.5, random(h, index * 2 + 1) - 0.5]
-	renderFlashTextToCanvas(dom, frame, {
-		text: opts.text,
-		align: ["center"],
-		stageLengths: stageLengths,
-		style: {
-			...(opts.style ?? {}),
-			offsetX,
-			offsetY
-		}
-	})
 }

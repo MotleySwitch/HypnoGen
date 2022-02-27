@@ -1,3 +1,5 @@
+import type { Color } from "./Color"
+
 export type BackgroundImageProps = {
 	readonly image: HTMLImageElement
 	readonly styles?: {
