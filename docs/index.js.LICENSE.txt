@@ -4,23 +4,6 @@ object-assign
 @license MIT
 */
 
-/*!
- * Buttplug JS Source Code File - Visit https://buttplug.io for more info about
- * the project. Licensed under the BSD 3-Clause license. See LICENSE file in the
- * project root for full license information.
- *
- * @copyright Copyright (c) Nonpolynomial Labs LLC. All rights reserved.
- */
-
-/*!
- * The buffer module from node.js, for the browser.
- *
- * @author   Feross Aboukhadijeh <https://feross.org>
- * @license  MIT
- */
-
-/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
-
 /**
  * A better abstraction over CSS.
  *

@@ -1,14 +1,10 @@
 import { CircularProgress, Dialog, Grid, makeStyles } from "@material-ui/core"
 import GIF from "gif.js"
-import React, { useEffect } from "react"
-import { render, Assets, DrawCommand, ShaderStore, loadAssetStore } from "./effects/webgl"
-import { Colors } from "./effects/webgl/Color"
-import { createPatternShader, PatternShader } from "./effects/webgl/Pattern"
+import React from "react"
+import { render } from "./effects/webgl"
 import { useAssets, useRenderDef, useRenderToCanvas } from "./effects/webgl/webgl.react"
 import defer from "./util/defer"
 import onKeyboard, { KeyState } from "./util/onKeyboard"
-import { useQuery, useQueryJson, useQueryNumber } from "./util/useQuery"
-import useRequestAnimationFrame from "./util/useRequestAnimationFrame"
 
 const useAppStyles = makeStyles({
 	root: {

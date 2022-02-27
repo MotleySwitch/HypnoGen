@@ -1,6 +1,5 @@
 import { createTheme, CssBaseline, MuiThemeProvider, ThemeOptions, Typography } from "@material-ui/core"
 import React from "react"
-import { ButtplugProvider } from "./util/Buttplug"
 import { SearchProvider } from "./util/useQuery"
 import { SemaphoreProvider } from "./util/useSemaphore"
 
@@ -28,18 +27,16 @@ const theme: ThemeOptions = {
 
 export default function Scaffold({ children }: { readonly children: React.ReactChild }) {
 	return (
-		<ButtplugProvider>
-			<SearchProvider>
-				<SemaphoreProvider>
-					<MuiThemeProvider theme={createTheme(theme)}>
-						<CssBaseline>
-							<React.Suspense fallback={<Typography variant="h1" align="center">...</Typography>}>
-									{children}
-							</React.Suspense>
-						</CssBaseline>
-					</MuiThemeProvider >
-				</SemaphoreProvider>
-			</SearchProvider>
-		</ButtplugProvider>
+		<SearchProvider>
+			<SemaphoreProvider>
+				<MuiThemeProvider theme={createTheme(theme)}>
+					<CssBaseline>
+						<React.Suspense fallback={<Typography variant="h1" align="center">...</Typography>}>
+							{children}
+						</React.Suspense>
+					</CssBaseline>
+				</MuiThemeProvider >
+			</SemaphoreProvider>
+		</SearchProvider>
 	)
 }
