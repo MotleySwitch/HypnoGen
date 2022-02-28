@@ -1,6 +1,7 @@
 {
   "scripts": {
     "start": "webpack serve",
+    "typecheck": "tsc -p . --noEmit",
     "compile:dev": "webpack",
     "watch": "webpack --watch",
     "compile:prod": "webpack --config webpack.config.production.js",
@@ -8,10 +9,13 @@
   },
   "dependencies": {
     "@material-ui/core": "4.12.3",
+    "@material-ui/icons": "^4.11.2",
     "@types/gif.js": "0.2.2",
+    "@types/react-color": "^3.0.6",
     "buttplug": "1.0.17",
     "gif.js": "0.2.0",
     "react": "17.0.2",
+    "react-color": "^2.19.3",
     "react-dom": "17.0.2"
   },
   "devDependencies": {

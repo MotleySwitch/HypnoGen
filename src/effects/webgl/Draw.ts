@@ -1,41 +1,10 @@
 import { Color, toCssStringRGB } from "./Color"
-import type { PatternColors } from "./Pattern"
-import type { ProgramRef } from "./WebGLRef"
-
-export type RenderVideoStep = {
-    readonly type: "video"
-    readonly src: HTMLVideoElement
-}
-export type RenderFlashTextStep = {
-    readonly type: "flash-text"
-    readonly src: readonly string[]
-    readonly align?: readonly string[]
-	readonly style?: {
-		readonly alpha?: number
-		readonly fillColor?: Color
-		readonly strokeColor?: Color
-		readonly fonts?: readonly string[]
-	}
-}
-
-export type RenderShaderStep = {
-    readonly type: "shader"
-    readonly shader: ProgramRef
-	readonly colors?: Partial<PatternColors>
-}
-
-export type RenderImageStep = {
-    readonly type: "image"
-    readonly src: readonly HTMLImageElement[]
-}
-
-export type RenderStep =
-| RenderVideoStep
-| RenderFlashTextStep
-| RenderShaderStep
-| RenderImageStep
 
 export function clipCircle(dom: HTMLCanvasElement, origin: readonly [number, number], size: number, render: (dom: HTMLCanvasElement) => void) {
+	if (size === 0) {
+		return
+	}
+
 	const src = document.createElement("canvas")
 	src.width = size * Math.min(dom.width, dom.height)
 	src.height = src.width
@@ -96,8 +65,4 @@ export function opacity(dom: HTMLCanvasElement, opacity: number, render: (dom: H
 	context.globalAlpha = context.globalAlpha * opacity
 	render(dom)
     context.restore()
-}
-
-export function transformFps(frame: number, sourceFps: number, targetFps: number, render: (frame: number, fps: number) => void) {
-	render(frame * (targetFps / sourceFps), targetFps)
 }

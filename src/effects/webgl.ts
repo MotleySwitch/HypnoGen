@@ -1,8 +1,11 @@
-
-import { Color } from "./webgl/Color"
+import GIF from "gif.js"
+import React from "react"
+import defer from "../util/defer"
+import type { Color } from "./webgl/Color"
 import { clear, clipCircle, fill, opacity } from "./webgl/Draw"
 import { createPatternShader, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
 import { FlashTextAlign, FlashTextStyle, renderFlashBoxToCanvas, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle } from "./webgl/Text"
+import type { RenderDef } from "./webgl/webgl.react"
 
 export type DrawCommand =
 	| { readonly type: "fill"; readonly color: Color }
@@ -129,35 +132,61 @@ export function render(
 	commands.forEach(command => renderTree(targetBuffer, command, frame, assets, opts))
 }
 
-
-export async function loadAssetStore(size: readonly [number, number], commands: readonly DrawCommand[]): Promise<Assets> {
-	async function loadShaderAssets(size: readonly [number, number], commands: readonly DrawCommand[]) {
-		function extractUsedShaders(commands: readonly DrawCommand[]): readonly string[] {
-			return commands.reduce((prev: readonly string[], curr: DrawCommand) => {
-				switch (curr.type) {
-					case "clip-circle":
-					case "frame-offset":
-					case "opacity":
-						return [...prev, ...extractUsedShaders(curr.children)]
-					case "pattern":
-						return [...prev, curr.pattern]
-					default:
-						return prev
-				}
-			}, [])
+export function extractUsedShaders(commands: readonly DrawCommand[]): readonly string[] {
+	return commands.reduce((prev: readonly string[], curr: DrawCommand) => {
+		switch (curr.type) {
+			case "clip-circle":
+			case "frame-offset":
+			case "opacity":
+				return [...prev, ...extractUsedShaders(curr.children)]
+			case "pattern":
+				return [...prev, curr.pattern]
+			default:
+				return prev
 		}
+	}, [])
+}
 
-		async function loadShaderAssets(size: readonly [number, number], shaders: readonly string[]): Promise<ShaderStore> {
-			const results = await Promise.all(shaders.map(async shader => [shader, await createPatternShader(size, "shaders/spiral.vs", `shaders/${shader}.fs`)] as [string, PatternShader]))
+export async function loadShaderAssets(size: readonly [number, number], shaders: readonly string[]): Promise<ShaderStore> {
+	const results = await Promise.all(shaders.map(async shader => [shader, await createPatternShader(size, "shaders/spiral.vs", `shaders/${shader}.fs`)] as [string, PatternShader]))
 
-			return results.reduce((prev: ShaderStore, [s, d]) => ({ ...prev, [s]: d }), {} as ShaderStore)
+	return results.reduce((prev: ShaderStore, [s, d]) => ({ ...prev, [s]: d }), {} as ShaderStore)
+}
+
+export type RenderingStatus = { readonly current: "no" } | {
+	readonly current: "rendering" | "exporting"
+	readonly progress: number
+}
+
+export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [RenderingStatus, () => void] {
+	const [rendering, setRendering] = React.useState<RenderingStatus>({ current: "no" })
+
+	return [rendering, async () => {
+		setRendering({ current: "rendering", progress: 0 })
+
+		const gif = new GIF({ quality: 5, repeat: 0 })
+		const totalFrames = def.totalFrames || def.fps
+		for (let frame = 0; frame < totalFrames; ++frame) {
+			await defer(() => {
+				const targetBuffer = document.createElement("canvas")
+				targetBuffer.width = def.resolution[0]
+				targetBuffer.height = def.resolution[1]
+
+				render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
+				setRendering({ current: "rendering", progress: (frame / totalFrames) })
+				gif.addFrame(targetBuffer, { delay: 1000 / (def.speed * def.fps), copy: true })
+			})
 		}
-
-		return loadShaderAssets(size, extractUsedShaders(commands))
-
-	}
-
-	return {
-		shaders: await loadShaderAssets(size, commands)
-	}
+		gif.on("progress", e => {
+			setRendering({
+				current: "exporting",
+				progress: e
+			})
+		})
+		gif.on("finished", blob => {
+			window.open(URL.createObjectURL(blob))
+			setRendering({ current: "no" })
+		})
+		gif.render()
+	}]
 }

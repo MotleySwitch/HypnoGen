@@ -4,7 +4,6 @@ import { Color, toCssStringRGB } from "./Color"
 export type TextStyle = {
 	readonly bold?: boolean
 	readonly lineWidth?: number
-	readonly alpha?: number
 	readonly size?: number
 	readonly fillColor?: Color
 	readonly strokeColor?: Color
@@ -25,7 +24,6 @@ export function renderTextToCanvas(dom: HTMLCanvasElement, { x, y, value, ...opt
 	const context = dom.getContext("2d")!
 	context.save()
 	context.textBaseline = "top"
-	context.globalAlpha = context.globalAlpha * (opts.style?.alpha ?? 1)
 	context.font = `${fontSize}px ${(opts.style?.fonts ?? ["Uni Sans Heavy", "Roboto", "Helvetica", "Arial", "sans-serif"]).join(", ")}`
 	const measure = context.measureText(value)
 
@@ -127,14 +125,9 @@ export function renderFlashBoxToCanvas(dom: HTMLCanvasElement, frame: number, op
 }
 
 
-export type FlashTextStyle = {
-	readonly strokeColor?: Color
-	readonly fillColor?: Color
-	readonly size?: number
-	readonly lineWidth?: number
+export type FlashTextStyle = TextStyle & {
 	readonly offsetX?: number
 	readonly offsetY?: number
-	readonly bold?: boolean
 }
 
 export type FlashTextAlign = ("center" | "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right")
@@ -189,15 +182,17 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 			break
 	}
 
+	const context = dom.getContext("2d")!
+	context.save()
 	if (framePosition < stageLengths[0]) {
 	} else if (stageLengths[0] > 0 && framePosition < stageLengths[0] + stageLengths[1]) {
+		context.globalAlpha = context.globalAlpha * ((opts.style?.fillColor ?? [0, 0, 0, 1])[3] * (framePosition - stageLengths[0]) / stageLengths[1])
 		renderTextToCanvas(dom, {
 			x,
 			y,
 			value: text,
 			style: {
 				lineWidth: opts.style?.lineWidth,
-				alpha: (opts.style?.fillColor ?? [0, 0, 0, 1])[3] * (framePosition - stageLengths[0]) / stageLengths[1],
 				...(opts.style?.fillColor != null ? { fillColor: opts.style.fillColor } : {}),
 				...(opts.style?.strokeColor != null ? { strokeColor: opts.style.strokeColor } : {}),
 				bold: opts.style?.bold,
@@ -205,13 +200,13 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 			}
 		})
 	} else if (stageLengths[1] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
+		context.globalAlpha = context.globalAlpha * ((opts.style?.fillColor ?? [0, 0, 0, 1])[3])
 		renderTextToCanvas(dom, {
 			x,
 			y,
 			value: text,
 			style: {
 				lineWidth: opts.style?.lineWidth,
-				alpha: (opts.style?.fillColor ?? [0, 0, 0, 1])[3],
 				...(opts.style?.fillColor != null ? { fillColor: (opts.style.fillColor) } : {}),
 				...(opts.style?.strokeColor != null ? { strokeColor: (opts.style.strokeColor) } : {}),
 				bold: opts.style?.bold,
@@ -220,13 +215,13 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 		})
 	} else if (stageLengths[2] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
 		const pos = framePosition - (stageLengths[0] + stageLengths[1] + + stageLengths[2])
+		context.globalAlpha = context.globalAlpha * ((opts.style?.fillColor ?? [0, 0, 0, 1])[3] * ((stageLengths[3] - pos) / stageLengths[3]))
 		renderTextToCanvas(dom, {
 			x,
 			y,
 			value: text,
 			style: {
 				lineWidth: opts.style?.lineWidth,
-				alpha: (opts.style?.fillColor ?? [0, 0, 0, 1])[3] * ((stageLengths[3] - pos) / stageLengths[3]),
 				...(opts.style?.fillColor != null ? { fillColor: opts.style.fillColor } : {}),
 				...(opts.style?.strokeColor != null ? { strokeColor: opts.style.strokeColor } : {}),
 				bold: opts.style?.bold,
@@ -236,4 +231,5 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 	} else {
 
 	}
+	context.restore()
 }

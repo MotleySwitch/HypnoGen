@@ -8,6 +8,9 @@ export function toCssStringRGB(r: number, g: number, b: number, a?: number) {
     
     return `#${componentToHex(r * 255)}${componentToHex(g * 255)}${componentToHex(b * 255)}`
 }
+export function toCssStringRGBA(r: number, g: number, b: number, a?: number) {   
+    return `rgba(${(r * 255) | 0}, ${(g * 255) | 0}, ${(b * 255) | 0}, ${a ?? 1})`
+}
 
 export function clamp_rgba([r, g, b, a]: Color): Color {
 	return [
