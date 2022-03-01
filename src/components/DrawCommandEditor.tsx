@@ -12,6 +12,7 @@ import type { FlashTextAlign, FlashTextStyle, TextStyle } from "../effects/webgl
 import { PatternEditor } from "./PatternEditor"
 
 export type SetEditorProps<T, U = string> = {
+	readonly label: string
 	readonly value: readonly T[]
 	readonly onChange: (value: readonly T[]) => void
 	readonly children: (value: T, onChange: (value: T) => void) => JSX.Element
@@ -24,10 +25,11 @@ export type SetEditorProps<T, U = string> = {
 	readonly create: (value: U) => T
 })
 
-export const SetEditor = function <T, U = string>({ value, onChange, children, ...opts }: SetEditorProps<T, U>) {
+export const SetEditor = function <T, U = string>({ label, value, onChange, children, ...opts }: SetEditorProps<T, U>) {
 	const [add, setAdd] = React.useState<HTMLButtonElement | null>(null)
 	return (
 		<>
+			<Typography variant="h4" paragraph>{label}</Typography>
 			{value.map((v, i) => <Grid key={i} container spacing={3}>
 				<Grid item style={{ width: "100px" }}>
 					<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i - 1)), v, ...value.slice(i - 1, i), ...value.slice(i + 1)])}>/\</IconButton>
@@ -355,16 +357,15 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 					<AccordionDetails>
 						<Grid container spacing={3}>
 							<Grid item xs={12}>
+								<TextField multiline fullWidth label="Messages" value={value.text.join("\n")} onChange={e => onChange({ ...value, text: e.target.value.split("\n") })} />
+							</Grid>
+							<Grid item xs={12}>
 								<StageEditor label="Stages" value={value.stages ?? [15, 15, 15, 15]} onChange={stages => onChange({ ...value, stages })} />
 							</Grid>
 							<Grid item xs={12}>
-								{value.align != null
-									&& value.align.map((align, i) => (
-										<FlashTextAlignSelect key={i} value={align} onChange={align => onChange({ ...value, align: [...value.align!.slice(0, i), align, ...value.align!.slice(i + 1)] })} />
-									))}
-							</Grid>
-							<Grid item xs={12}>
-								<TextField multiline fullWidth label="Messages" value={value.text.join("\n")} onChange={e => onChange({ ...value, text: e.target.value.split("\n") })} />
+								<SetEditor label="Align" value={value.align ?? []} onChange={align => onChange({ ...value, align })} create={() => "center"}>
+									{(value, onChange) => <FlashTextAlignSelect value={value} onChange={onChange} />}
+								</SetEditor>
 							</Grid>
 							<Grid item xs={12}>
 								<FlashTextStyleEditor label="Styles" value={value.style ?? {}} onChange={style => onChange({ ...value, style })} />
