@@ -6,8 +6,7 @@ export type PatternColors = {
 	readonly bgColor: Color,
 	readonly fgColor: Color,
 	readonly pulseColor: Color,
-	readonly dimColor: Color,
-	readonly extraColor: Color,
+	readonly dimColor: Color
 }
 
 export type PatternShader = readonly [BufferRef, ProgramRef, HTMLCanvasElement]
@@ -34,8 +33,7 @@ export function renderSpiralShaderToCanvas(dom: HTMLCanvasElement, frame: number
 		bgColor: opts.colors?.bgColor ?? [0.0, 0.0, 0.0, 0.0],
 		fgColor: opts.colors?.fgColor ?? [1.0, 1.0, 1.0, 1.0],
 		pulseColor: opts.colors?.pulseColor ?? [178 / 255, 76 / 255, 229 / 255, 1.0],
-		dimColor: opts.colors?.dimColor ?? [0.0, 0.0, 0.0, 0.0],
-		extraColor: opts.colors?.extraColor ?? [0.0, 0.0, 0.0, 0.0],
+		dimColor: opts.colors?.dimColor ?? [0.0, 0.0, 0.0, 1.0],
 	}
 
 	context.clear()

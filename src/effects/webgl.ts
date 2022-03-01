@@ -18,16 +18,16 @@ export type DrawCommandType =
 	| "subliminal"
 	| "flash-fill"
 
-export const DrawCommandTypes: readonly DrawCommandType[] = [
-	"fill",
-	"opacity",
-	"frame-offset",
-	"clip-circle",
-	"pattern",
-	"text",
-	"flash-text",
-	"subliminal",
-	"flash-fill"
+export const DrawCommandTypes: readonly { readonly type: DrawCommandType; readonly name: string }[] = [
+	{ type: "fill", name: "Fill" },
+	{ type: "opacity", name: "Opacity" },
+	{ type: "frame-offset", name: "Frame Offset" },
+	{ type: "clip-circle", name: "Clip (Circle)" },
+	{ type: "pattern", name: "Pattern" },
+	{ type: "text", name: "Text" },
+	{ type: "flash-fill", name: "Flash (Fill)" },
+	{ type: "flash-text", name: "Flash (Text)" },
+	{ type: "subliminal", name: "Subliminal" }
 ]
 
 export type DrawCommand =
@@ -125,7 +125,6 @@ export function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: num
 						bgColor: tree.colors.bg,
 						fgColor: tree.colors.fg,
 						dimColor: tree.colors.dim,
-						extraColor: tree.colors.extra,
 						pulseColor: tree.colors.pulse
 					},
 					fps: opts?.fps
@@ -222,8 +221,8 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 		for (let frame = 0; frame < totalFrames; ++frame) {
 			await defer(() => {
 				const targetBuffer = document.createElement("canvas")
-				targetBuffer.width = def.resolution[0]
-				targetBuffer.height = def.resolution[1]
+				targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : 32 
+				targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : 32
 
 				render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
 				setRendering({ current: "rendering", progress: (frame / totalFrames) })

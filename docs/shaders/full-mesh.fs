@@ -10,7 +10,6 @@ uniform vec4 bgColor;
 uniform vec4 fgColor;
 uniform vec4 pulseColor;
 uniform vec4 dimColor;
-uniform vec4 extraColor;
 
 void main(void)
 {

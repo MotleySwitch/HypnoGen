@@ -23,13 +23,13 @@ export const RenderDefEditor = ({ value, onChange }: RenderDefEditorProps) => {
 					<TextField
 						fullWidth margin="dense"
 						type="number" label="Width"
-						value={value.resolution[0]} onChange={e => onChange({ ...value, resolution: [parseInt(e.target.value, 0), value.resolution[1]] })} />
+						value={value.resolution[0]} onChange={e => onChange({ ...value, resolution: [parseInt(e.target.value || "0", 0), value.resolution[1]] })} />
 				</Grid>
 				<Grid item xs={12} sm={6}>
 					<TextField
 						fullWidth margin="dense"
 						type="number" label="Height"
-						value={value.resolution[1]} onChange={e => onChange({ ...value, resolution: [value.resolution[0], parseInt(e.target.value, 0)] })} />
+						value={value.resolution[1]} onChange={e => onChange({ ...value, resolution: [value.resolution[0], parseInt(e.target.value || "0", 0)] })} />
 				</Grid>
 			</Grid>
 
@@ -40,19 +40,19 @@ export const RenderDefEditor = ({ value, onChange }: RenderDefEditorProps) => {
 					<TextField
 						fullWidth margin="dense"
 						type="number" label="FPS"
-						value={value.fps} onChange={e => onChange({ ...value, fps: parseInt(e.target.value, 0) })} />
+						value={value.fps} onChange={e => onChange({ ...value, fps: parseInt(e.target.value || "0", 0) })} />
 				</Grid>
 				<Grid item xs={12} sm={6} lg={4}>
 					<TextField
 						fullWidth margin="dense"
 						type="number" label="Total Frames"
-						value={value.totalFrames} onChange={e => onChange({ ...value, totalFrames: parseInt(e.target.value, 0) })} />
+						value={value.totalFrames} onChange={e => onChange({ ...value, totalFrames: parseInt(e.target.value || "0", 0) })} />
 				</Grid>
 				<Grid item xs={12} lg={4}>
 					<TextField
 						fullWidth margin="dense"
 						type="number" label="Speed"
-						value={value.speed} onChange={e => onChange({ ...value, speed: parseFloat(e.target.value) })} />
+						value={value.speed} onChange={e => onChange({ ...value, speed: parseFloat(e.target.value || "0") })} />
 				</Grid>
 			</Grid>
 		</>

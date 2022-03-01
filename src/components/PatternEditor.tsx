@@ -10,7 +10,7 @@ export type PatternEditorProps = {
 
 export const PatternEditor = ({ value, onChange }: PatternEditorProps) => {
 	return (
-		<SetEditor value={value} onChange={onChange} createOptions={DrawCommandTypes} create={v => DrawCommand(v)}>
+		<SetEditor value={value} onChange={onChange} createOptions={DrawCommandTypes} optionName={e => e.name} create={v => DrawCommand(v.type)}>
 			{(value, onChange) => <DrawCommandEditor value={value} onChange={onChange} />}
 		</SetEditor>
 	)

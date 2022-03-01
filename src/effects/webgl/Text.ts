@@ -115,8 +115,8 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 	const align = opts.align != null ? opts.align[((frame / totalFramesLength) | 0) % opts.align.length ?? 1] : "center"
 	const text = opts.text[((frame / totalFramesLength) | 0) % opts.text.length]
 
-	let x = 0.5 + (opts.style?.offsetX ?? 0)
-	let y = 0.5 + (opts.style?.offsetY ?? 0)
+	let x = 0.0 + (opts.style?.offsetX ?? 0)
+	let y = 0.0 + (opts.style?.offsetY ?? 0)
 	switch (align) {
 		case "left":
 			x = -0.95 + (opts.style?.offsetX ?? 0)

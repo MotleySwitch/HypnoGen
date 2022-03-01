@@ -24,6 +24,6 @@ export const SpiralViewer = ({ def, assets, onClick }: SpiralViewerProps) => {
 	useRenderToCanvas(canvasRef.current, { enable: true, assets, def })
 
 	return (
-		<canvas className={root} width={def.resolution[0]} height={def.resolution[1]} ref={canvasRef} onClick={onClick} />
+		<canvas className={root} width={def.resolution[0] > 0 ? def.resolution[0] : 32} height={def.resolution[1] > 0 ? def.resolution[1] : 32} ref={canvasRef} onClick={onClick} />
 	)
 }
