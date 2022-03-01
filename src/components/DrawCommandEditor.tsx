@@ -11,58 +11,61 @@ import { AvailableShaders } from "../effects/webgl/Shaders"
 import type { FlashTextAlign, FlashTextStyle, TextStyle } from "../effects/webgl/Text"
 import { PatternEditor } from "./PatternEditor"
 
-export type SetEditorProps<T, U = string> = {
+export type SetEditorProps<T> = {
 	readonly label: string
 	readonly value: readonly T[]
 	readonly onChange: (value: readonly T[]) => void
-	readonly children: (value: T, onChange: (value: T) => void) => JSX.Element
-} & ({
+}
+
+export const makeSetEditor = function <T, U = string>(opts: ({
 	readonly create: () => T
-	readonly createOptions: undefined
+	readonly createOptions?: never
+	readonly edit: (value: T, onChange: (value: T) => void) => JSX.Element
 } | {
 	readonly createOptions: readonly U[]
 	readonly optionName: (value: U) => string
 	readonly create: (value: U) => T
-})
+	readonly edit: (value: T, onChange: (value: T) => void) => JSX.Element
+})) {
+	return ({ label, value, onChange }: SetEditorProps<T>) => {
+		const [add, setAdd] = React.useState<HTMLButtonElement | null>(null)
+		return (
+			<>
+				<Typography variant="h4" paragraph>{label}</Typography>
+				{value.map((v, i) => <Grid key={i} container spacing={3}>
+					<Grid item style={{ width: "100px" }}>
+						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i - 1)), v, ...value.slice(i - 1, i), ...value.slice(i + 1)])}>/\</IconButton>
+						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i)), ...value.slice(i + 1, i + 2), v, ...value.slice(i + 2)])}>\/</IconButton>
+					</Grid>
+					<Grid item style={{ width: "calc(100% - 164px)" }}>
+						{opts.edit(v, nv => onChange([...value.slice(0, i), nv, ...value.slice(i + 1)]))}
+					</Grid>
+					<Grid item style={{ width: "64px" }}>
+						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, i), ...value.slice(i + 1)])}>X</IconButton>
+					</Grid>
+				</Grid>)}
 
-export const SetEditor = function <T, U = string>({ label, value, onChange, children, ...opts }: SetEditorProps<T, U>) {
-	const [add, setAdd] = React.useState<HTMLButtonElement | null>(null)
-	return (
-		<>
-			<Typography variant="h4" paragraph>{label}</Typography>
-			{value.map((v, i) => <Grid key={i} container spacing={3}>
-				<Grid item style={{ width: "100px" }}>
-					<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i - 1)), v, ...value.slice(i - 1, i), ...value.slice(i + 1)])}>/\</IconButton>
-					<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i)), ...value.slice(i + 1, i + 2), v, ...value.slice(i + 2)])}>\/</IconButton>
+				<Grid container spacing={3}>
+					<Grid item style={{ flexGrow: 1 }} />
+					<Grid item>
+						<IconButton onClick={e => {
+							if (opts.createOptions) {
+								setAdd(e.currentTarget)
+							} else {
+								onChange([...value, opts.create()])
+							}
+						}}>+</IconButton>
+						{opts.createOptions && <Menu open={add != null} anchorEl={add} onClose={() => setAdd(null)}>
+							{opts.createOptions.map((e, i) => <MenuItem key={i} onClick={() => {
+								onChange([...value, opts.create(e)])
+								setAdd(null)
+							}}>{opts.optionName(e)}</MenuItem>)}
+						</Menu>}
+					</Grid>
 				</Grid>
-				<Grid item style={{ width: "calc(100% - 164px)" }}>
-					{children(v, nv => onChange([...value.slice(0, i), nv, ...value.slice(i + 1)]))}
-				</Grid>
-				<Grid item style={{ width: "64px" }}>
-					<IconButton color="secondary" onClick={() => onChange([...value.slice(0, i), ...value.slice(i + 1)])}>X</IconButton>
-				</Grid>
-			</Grid>)}
-
-			<Grid container spacing={3}>
-				<Grid item style={{ flexGrow: 1 }} />
-				<Grid item>
-					<IconButton onClick={e => {
-						if (opts.createOptions) {
-							setAdd(e.currentTarget)
-						} else {
-							onChange([...value, opts.create()])
-						}
-					}}>+</IconButton>
-					{opts.createOptions && <Menu open={add != null} anchorEl={add} onClose={() => setAdd(null)}>
-						{opts.createOptions.map((e, i) => <MenuItem key={i} onClick={() => {
-							onChange([...value, opts.create(e)])
-							setAdd(null)
-						}}>{opts.optionName(e)}</MenuItem>)}
-					</Menu>}
-				</Grid>
-			</Grid>
-		</>
-	)
+			</>
+		)
+	}
 }
 
 
@@ -230,6 +233,11 @@ export type DrawCommandEditorProps = {
 	readonly onChange: (value: DrawCommand) => void
 }
 
+const AlignSetEditor = makeSetEditor<FlashTextAlign>({
+	create: () => ("center" as FlashTextAlign),
+	edit: (value, onChange) => <FlashTextAlignSelect value={value} onChange={onChange} />
+})
+
 export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) => {
 	const [open, setOpen] = React.useState(false)
 	switch (value.type) {
@@ -363,9 +371,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<StageEditor label="Stages" value={value.stages ?? [15, 15, 15, 15]} onChange={stages => onChange({ ...value, stages })} />
 							</Grid>
 							<Grid item xs={12}>
-								<SetEditor label="Align" value={value.align ?? []} onChange={align => onChange({ ...value, align })} create={() => "center"}>
-									{(value, onChange) => <FlashTextAlignSelect value={value} onChange={onChange} />}
-								</SetEditor>
+								<AlignSetEditor label="Align" value={value.align ?? []} onChange={align => onChange({ ...value, align })} />
 							</Grid>
 							<Grid item xs={12}>
 								<FlashTextStyleEditor label="Styles" value={value.style ?? {}} onChange={style => onChange({ ...value, style })} />

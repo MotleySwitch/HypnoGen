@@ -72,7 +72,7 @@ export function renderSubliminalToCanvas(dom: HTMLCanvasElement, frame: number, 
 		return
 	}
 
-	const stageLengths = opts.stageLengths ?? [5, 2, 3, 2]
+	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
 	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
 	const index = (frame / totalFramesLength) | 0
 	const h = hash(opts.text.reduce((p, c) => `${p}:${c}`, ""))

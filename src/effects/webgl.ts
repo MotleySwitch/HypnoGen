@@ -18,7 +18,9 @@ export type DrawCommandType =
 	| "subliminal"
 	| "flash-fill"
 
-export const DrawCommandTypes: readonly { readonly type: DrawCommandType; readonly name: string }[] = [
+export type DrawCommandDef = { readonly type: DrawCommandType; readonly name: string }
+
+export const AvailableDrawCommands: readonly DrawCommandDef[] = [
 	{ type: "fill", name: "Fill" },
 	{ type: "opacity", name: "Opacity" },
 	{ type: "frame-offset", name: "Frame Offset" },

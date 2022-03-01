@@ -1,17 +1,22 @@
 import React from "react"
 
-import { DrawCommand, DrawCommandTypes } from "../effects/webgl"
-import { DrawCommandEditor, SetEditor } from "./DrawCommandEditor"
+import { DrawCommand, AvailableDrawCommands, DrawCommandDef } from "../effects/webgl"
+import { DrawCommandEditor, makeSetEditor } from "./DrawCommandEditor"
 
 export type PatternEditorProps = {
 	readonly value: readonly DrawCommand[]
 	readonly onChange: (value: readonly DrawCommand[]) => void
 }
 
+const PatternSetEditor = makeSetEditor<DrawCommand, DrawCommandDef>({
+	create: v => DrawCommand(v.type),
+	edit: (value, onChange) => <DrawCommandEditor value={value} onChange={onChange} />,
+	createOptions: AvailableDrawCommands,
+	optionName: e => e.name
+})
+
 export const PatternEditor = ({ value, onChange }: PatternEditorProps) => {
 	return (
-		<SetEditor value={value} onChange={onChange} createOptions={DrawCommandTypes} optionName={e => e.name} create={v => DrawCommand(v.type)}>
-			{(value, onChange) => <DrawCommandEditor value={value} onChange={onChange} />}
-		</SetEditor>
+		<PatternSetEditor label="Patterns" value={value} onChange={onChange} />
 	)
 }
