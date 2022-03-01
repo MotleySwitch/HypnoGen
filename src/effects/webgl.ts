@@ -11,6 +11,7 @@ export type DrawCommandType =
 	| "fill"
 	| "opacity"
 	| "frame-offset"
+	| "change-speed"
 	| "clip-circle"
 	| "pattern"
 	| "text"
@@ -24,6 +25,7 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = [
 	{ type: "fill", name: "Fill" },
 	{ type: "opacity", name: "Opacity" },
 	{ type: "frame-offset", name: "Frame Offset" },
+	{ type: "change-speed", name: "Change Speed" },
 	{ type: "clip-circle", name: "Clip (Circle)" },
 	{ type: "pattern", name: "Pattern" },
 	{ type: "text", name: "Text" },
@@ -36,6 +38,7 @@ export type DrawCommand =
 	| { readonly type: "fill"; readonly color: Color }
 	| { readonly type: "opacity"; readonly value: number; readonly children: readonly DrawCommand[] }
 	| { readonly type: "frame-offset"; readonly by: number; readonly children: readonly DrawCommand[] }
+	| { readonly type: "change-speed"; readonly factor: number; readonly children: readonly DrawCommand[] }
 	| {
 		readonly type: "clip-circle"
 		readonly origin: readonly [number, number]
@@ -89,6 +92,7 @@ export const DrawCommand = (value: string): DrawCommand => {
 		case "flash-text": return { type: "flash-text", text: [] }
 		case "subliminal": return { type: "subliminal", text: [] }
 		case "flash-fill": return { type: "flash-fill", color: [1, 1, 1, 1] }
+		case "change-speed": return { type: "change-speed", factor: 1, children: [] }
 		default:
 			return { type: "text", value, coords: [0, 0] }
 	}
@@ -112,6 +116,9 @@ export function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: num
 
 		case "frame-offset":
 			return tree.children.forEach(child => renderTree(dom, child, frame + tree.by, assets, opts))
+
+		case "change-speed":
+			return tree.children.forEach(child => renderTree(dom, child, frame * tree.factor, assets, opts))
 
 		case "clip-circle":
 			return clipCircle(dom, tree.origin, tree.radius, dom => tree.children.forEach(child => renderTree(dom, child, frame, assets, opts)))
@@ -163,6 +170,8 @@ export function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: num
 					backgroundColor: tree.color
 				}
 			})
+		default:
+			console.log("Unrecognized command type", tree)
 	}
 }
 
@@ -183,6 +192,7 @@ export function extractUsedShaders(commands: readonly DrawCommand[]): readonly s
 			case "clip-circle":
 			case "frame-offset":
 			case "opacity":
+			case "change-speed":
 				return [...prev, ...extractUsedShaders(curr.children)]
 			case "pattern":
 				return [...prev, curr.pattern]
@@ -223,7 +233,7 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 		for (let frame = 0; frame < totalFrames; ++frame) {
 			await defer(() => {
 				const targetBuffer = document.createElement("canvas")
-				targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : 32 
+				targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : 32
 				targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : 32
 
 				render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })

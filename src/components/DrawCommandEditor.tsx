@@ -1,7 +1,7 @@
 import React from "react"
 
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Grid, IconButton, Menu, MenuItem, Popover, Select, Slider, TextField, Typography } from "@material-ui/core"
-import { ExpandMore } from "@material-ui/icons"
+import { ExpandMore, FileCopy, Delete, ArrowUpward, ArrowDownward } from "@material-ui/icons"
 
 import { SketchPicker } from "react-color"
 
@@ -33,15 +33,24 @@ export const makeSetEditor = function <T, U = string>(opts: ({
 			<>
 				<Typography variant="h4" paragraph>{label}</Typography>
 				{value.map((v, i) => <Grid key={i} container spacing={3}>
-					<Grid item style={{ width: "100px" }}>
-						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i - 1)), v, ...value.slice(i - 1, i), ...value.slice(i + 1)])}>/\</IconButton>
-						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i)), ...value.slice(i + 1, i + 2), v, ...value.slice(i + 2)])}>\/</IconButton>
+					<Grid item style={{ width: "120px" }}>
+						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i - 1)), v, ...value.slice(i - 1, i), ...value.slice(i + 1)])}>
+							<ArrowUpward />
+						</IconButton>
+						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, Math.max(0, i)), ...value.slice(i + 1, i + 2), v, ...value.slice(i + 2)])}>
+							<ArrowDownward />
+						</IconButton>
 					</Grid>
-					<Grid item style={{ width: "calc(100% - 164px)" }}>
+					<Grid item style={{ width: "calc(100% - 240px)" }}>
 						{opts.edit(v, nv => onChange([...value.slice(0, i), nv, ...value.slice(i + 1)]))}
 					</Grid>
-					<Grid item style={{ width: "64px" }}>
-						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, i), ...value.slice(i + 1)])}>X</IconButton>
+					<Grid item style={{ width: "120px" }}>
+						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, i), v, v, ...value.slice(i + 1)])}>
+							<FileCopy />
+						</IconButton>
+						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, i), ...value.slice(i + 1)])}>
+							<Delete />
+						</IconButton>
 					</Grid>
 				</Grid>)}
 
@@ -291,6 +300,25 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 				</Accordion>
 			)
 
+		case "change-speed":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Change Speed</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField inputProps={{ min: 0, step: 0.25 }} fullWidth type="number" label="Factor" value={value.factor} onChange={e => onChange({ ...value, factor: parseFloat(e.target.value || "0") })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
 		case "clip-circle":
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
@@ -319,7 +347,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
 					<AccordionSummary expandIcon={<ExpandMore />}>
-						<Typography variant="h3">Flash Text</Typography>
+						<Typography variant="h3">Text</Typography>
 					</AccordionSummary>
 					<AccordionDetails>
 						<Grid container spacing={3}>

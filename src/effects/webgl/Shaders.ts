@@ -129,7 +129,7 @@ export const AvailableShaders = [
     },
     {
         key: "full-twisted-triplepulse",
-        name: " Twisted (Triple pulse)"
+        name: "Twisted (Triple pulse)"
     },
     {
         key: "full-twisted",
@@ -145,7 +145,7 @@ export const AvailableShaders = [
     },
     {
         key: "static-color-spiral",
-        name: "Color Spiral"
+        name: "Spiral (Color)"
     },
     {
         key: "static-events",
@@ -161,7 +161,7 @@ export const AvailableShaders = [
     },
     {
         key: "test-bumpy-spiral",
-        name: ""
+        name: "Spiral (Bumpy)"
     },
     {
         key: "test-dot",
@@ -299,4 +299,4 @@ export const AvailableShaders = [
         key: "pendulum-spiral-alt",
         name: "Pendulum (Spiral, Alt)"
     }
-]
+].sort((a, b) => a.name < b.name ? -1 : 1)
