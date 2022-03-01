@@ -1,7 +1,7 @@
 import React from "react"
 
-import type { DrawCommand } from "../effects/webgl"
-import { DrawCommandEditor } from "./DrawCommandEditor"
+import { DrawCommand, DrawCommandTypes } from "../effects/webgl"
+import { DrawCommandEditor, SetEditor } from "./DrawCommandEditor"
 
 export type PatternEditorProps = {
 	readonly value: readonly DrawCommand[]
@@ -10,11 +10,8 @@ export type PatternEditorProps = {
 
 export const PatternEditor = ({ value, onChange }: PatternEditorProps) => {
 	return (
-		<>
-			{value.map((v, i) => (
-				<DrawCommandEditor key={i}
-					value={v} onChange={e => onChange([...value.slice(0, i), e, ...value.slice(i + 1)])} />
-			))}
-		</>
+		<SetEditor value={value} onChange={onChange} createOptions={DrawCommandTypes} create={v => DrawCommand(v)}>
+			{(value, onChange) => <DrawCommandEditor value={value} onChange={onChange} />}
+		</SetEditor>
 	)
 }

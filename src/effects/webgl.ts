@@ -2,10 +2,33 @@ import GIF from "gif.js"
 import React from "react"
 import defer from "../util/defer"
 import type { Color } from "./webgl/Color"
-import { clear, clipCircle, fill, opacity } from "./webgl/Draw"
+import { clear, clipCircle, fill, opacity, renderFlashToCanvas } from "./webgl/Draw"
 import { createPatternShader, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
-import { FlashTextAlign, FlashTextStyle, renderFlashBoxToCanvas, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle } from "./webgl/Text"
+import { FlashTextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle } from "./webgl/Text"
 import type { RenderDef } from "./webgl/webgl.react"
+
+export type DrawCommandType =
+	| "fill"
+	| "opacity"
+	| "frame-offset"
+	| "clip-circle"
+	| "pattern"
+	| "text"
+	| "flash-text"
+	| "subliminal"
+	| "flash-fill"
+
+export const DrawCommandTypes: readonly DrawCommandType[] = [
+	"fill",
+	"opacity",
+	"frame-offset",
+	"clip-circle",
+	"pattern",
+	"text",
+	"flash-text",
+	"subliminal",
+	"flash-fill"
+]
 
 export type DrawCommand =
 	| { readonly type: "fill"; readonly color: Color }
@@ -53,8 +76,24 @@ export type DrawCommand =
 		readonly stages?: readonly [number, number, number, number]
 	}
 
+export const DrawCommand = (value: string): DrawCommand => {
+	switch (value) {
+		case "fill": return { type: "fill", color: [0, 0, 0, 1] }
+		case "opacity": return { type: "opacity", value: 1, children: [] }
+		case "frame-offset": return { type: "frame-offset", by: 0, children: [] }
+		case "clip-circle": return { type: "clip-circle", origin: [0, 0], radius: 1, children: [] }
+		case "pattern": return { type: "pattern", pattern: "full-inwards", colors: {} }
+		case "text": return { type: "text", value: "", coords: [0, 0] }
+		case "flash-text": return { type: "flash-text", text: [] }
+		case "subliminal": return { type: "subliminal", text: [] }
+		case "flash-fill": return { type: "flash-fill", color: [1, 1, 1, 1] }
+		default:
+			return { type: "text", value, coords: [0, 0] }
+	}
+}
+
 export type ShaderStore = {
-	readonly [name: string]: PatternShader
+	readonly [name: string]: PatternShader | undefined
 }
 
 export type Assets = {
@@ -76,17 +115,22 @@ export function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: num
 			return clipCircle(dom, tree.origin, tree.radius, dom => tree.children.forEach(child => renderTree(dom, child, frame, assets, opts)))
 
 		case "pattern":
-			return renderSpiralShaderToCanvas(dom, frame, {
-				shader: assets.shaders[tree.pattern],
-				colors: {
-					bgColor: tree.colors.bg,
-					fgColor: tree.colors.fg,
-					dimColor: tree.colors.dim,
-					extraColor: tree.colors.extra,
-					pulseColor: tree.colors.pulse
-				},
-				fps: opts?.fps
-			})
+			const shader = assets.shaders[tree.pattern]
+			if (shader == null) {
+				return
+			} else {
+				return renderSpiralShaderToCanvas(dom, frame, {
+					shader,
+					colors: {
+						bgColor: tree.colors.bg,
+						fgColor: tree.colors.fg,
+						dimColor: tree.colors.dim,
+						extraColor: tree.colors.extra,
+						pulseColor: tree.colors.pulse
+					},
+					fps: opts?.fps
+				})
+			}
 
 		case "text":
 			return renderTextToCanvas(dom, {
@@ -112,7 +156,7 @@ export function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: num
 			})
 
 		case "flash-fill":
-			return renderFlashBoxToCanvas(dom, frame, {
+			return renderFlashToCanvas(dom, frame, {
 				stageLengths: tree.stages,
 				style: {
 					backgroundColor: tree.color
@@ -148,9 +192,18 @@ export function extractUsedShaders(commands: readonly DrawCommand[]): readonly s
 }
 
 export async function loadShaderAssets(size: readonly [number, number], shaders: readonly string[]): Promise<ShaderStore> {
-	const results = await Promise.all(shaders.map(async shader => [shader, await createPatternShader(size, "shaders/spiral.vs", `shaders/${shader}.fs`)] as [string, PatternShader]))
+	const results = await Promise.all(shaders.map(async shader => {
+		try {
+			return [shader, await createPatternShader(size, "shaders/spiral.vs", `shaders/${shader}.fs`)] as [string, PatternShader] | null
+		} catch (err) {
+			return null
+		}
+	}))
 
-	return results.reduce((prev: ShaderStore, [s, d]) => ({ ...prev, [s]: d }), {} as ShaderStore)
+	return results
+		.filter(f => f != null)
+		.map(f => f!)
+		.reduce((prev: ShaderStore, [s, d]) => ({ ...prev, [s]: d }), {} as ShaderStore)
 }
 
 export type RenderingStatus = { readonly current: "no" } | {

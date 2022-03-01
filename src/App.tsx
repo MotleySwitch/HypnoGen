@@ -16,7 +16,7 @@ export default function App() {
 	return (
 		<>
 			<SpiralViewer def={def} assets={assets} onClick={() => setEditorOpen(true)} />
-			<Dialog open={openEditor}>
+			<Dialog open={openEditor} maxWidth="xl" fullWidth>
 				<DialogContent>
 					<RenderDefEditor value={def} onChange={setRenderDef} />
 				</DialogContent>

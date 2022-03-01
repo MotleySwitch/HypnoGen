@@ -31,14 +31,11 @@ export function renderSpiralShaderToCanvas(dom: HTMLCanvasElement, frame: number
 		resolution: [src.width, src.height],
 		aspect: src.width > src.height ? [src.width / src.height, 1.0] : [1.0, src.height / src.width],
 
-		...({
-			bgColor: [0.0, 0.0, 0.0, 0.0],
-			fgColor: [1.0, 1.0, 1.0, 1.0],
-			pulseColor: [178 / 255, 76 / 255, 229 / 255, 1.0],
-			dimColor: [0.0, 0.0, 0.0, 0.0],
-			extraColor: [0.0, 0.0, 0.0, 0.0],
-			...(opts.colors ?? {})
-		}),
+		bgColor: opts.colors?.bgColor ?? [0.0, 0.0, 0.0, 0.0],
+		fgColor: opts.colors?.fgColor ?? [1.0, 1.0, 1.0, 1.0],
+		pulseColor: opts.colors?.pulseColor ?? [178 / 255, 76 / 255, 229 / 255, 1.0],
+		dimColor: opts.colors?.dimColor ?? [0.0, 0.0, 0.0, 0.0],
+		extraColor: opts.colors?.extraColor ?? [0.0, 0.0, 0.0, 0.0],
 	}
 
 	context.clear()

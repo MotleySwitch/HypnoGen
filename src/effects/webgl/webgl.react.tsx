@@ -46,20 +46,20 @@ export const useRenderToCanvas = (target: HTMLCanvasElement | null, {
 	useRequestAnimationFrame(() => {
 		const last = lastUpdate.current
 		const now = performance.now()
-		const frameLength = (1.0 / def.fps)
+		const frameLength = (1.0 / (def.fps * def.speed))
 
 		let delta = (now - last) / 1000
 		if (delta < frameLength) {
 			return
 		}
 
-		while (delta >= (frameLength / def.speed)) {
+		while (delta >= frameLength) {
 			frame.current = frame.current + 1
-			delta = delta - (frameLength / def.speed)
+			delta = delta - frameLength
 		}
 		lastUpdate.current = performance.now() - delta
 
-		const actualFrame = def.totalFrames > 0 ? frame.current % def.totalFrames : frame.current
+		const actualFrame = (def.totalFrames > 0 ? frame.current % def.totalFrames : frame.current)
 		if (target != null && assets != null) {
 			render(target, def.pattern, actualFrame, assets, { fps: def.fps })
 		}
@@ -72,7 +72,7 @@ export function useAssets(def: RenderDef): Assets {
 
 	React.useEffect(() => {
 		let abort = false
-		loadShaderAssets(def.resolution, assets).then(result => {
+		loadShaderAssets(def.resolution, assets).then((result) => {
 			if (!abort) { setShaders(result) }
 		})
 		return () => { abort = true }

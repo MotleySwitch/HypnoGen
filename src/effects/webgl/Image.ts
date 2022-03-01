@@ -40,7 +40,7 @@ export type FlashImageProps = {
 
 export function renderFlashImageToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashImageProps) {
 	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
-	const totalFramesLength = stageLengths.reduce((p, c) => p + c)
+	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
 	const framePosition = frame % totalFramesLength
 	const image = opts.images[((frame / totalFramesLength) | 0) % opts.images.length]
 

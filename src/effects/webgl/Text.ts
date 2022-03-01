@@ -27,7 +27,7 @@ export function renderTextToCanvas(dom: HTMLCanvasElement, { x, y, value, ...opt
 	context.font = `${fontSize}px ${(opts.style?.fonts ?? ["Uni Sans Heavy", "Roboto", "Helvetica", "Arial", "sans-serif"]).join(", ")}`
 	const measure = context.measureText(value)
 
-	let px = (x * dom.width) - (measure.width / 2.0)
+	let px = (((1.0 + x) / 2.0) * dom.width) - (measure.width / 2.0)
 	if (px < 10.0) {
 		px = 10.0
 		context.textAlign = "left"
@@ -36,10 +36,10 @@ export function renderTextToCanvas(dom: HTMLCanvasElement, { x, y, value, ...opt
 		context.textAlign = "left"
 	} else {
 		context.textAlign = "center"
-		px = (x * dom.width)
+		px = (((1.0 + x) / 2.0) * dom.width)
 	}
 
-	let py = (y * dom.height) - (fontSize / 2.0)
+	let py = (((1.0 + y) / 2.0) * dom.height) - (fontSize / 2.0)
 	if (py < 10.0) {
 		py = 10.0
 	} else if (py + (fontSize / 2.0) >= (dom.height - fontSize - 10.0)) {
@@ -68,11 +68,16 @@ export type SubliminalProps = {
 };
 
 export function renderSubliminalToCanvas(dom: HTMLCanvasElement, frame: number, opts: SubliminalProps) {
+	if (opts.text.length === 0) {
+		return
+	}
+
 	const stageLengths = opts.stageLengths ?? [5, 2, 3, 2]
-	const totalFramesLength = stageLengths.reduce((p, c) => p + c)
+	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
 	const index = (frame / totalFramesLength) | 0
-	const h = hash(opts.text.reduce((p, c) => `${p}:${c}`))
-	const [offsetX, offsetY] = [random(h, index * 2) - 0.5, random(h, index * 2 + 1) - 0.5]
+	const h = hash(opts.text.reduce((p, c) => `${p}:${c}`, ""))
+	const [offsetX, offsetY] = [(random(h, index * 2) * 2 - 1), (random(h, index * 2 + 1) * 2 - 1)]
+
 	renderFlashTextToCanvas(dom, frame, {
 		text: opts.text,
 		align: ["center"],
@@ -84,46 +89,6 @@ export function renderSubliminalToCanvas(dom: HTMLCanvasElement, frame: number, 
 		}
 	})
 }
-
-export type FlashBoxProps = {
-	readonly style?: {
-		readonly backgroundColor?: Color
-	}
-	readonly stageLengths?: readonly [number, number, number, number]
-}
-
-export function renderFlashBoxToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashBoxProps) {
-	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
-	const totalFramesLength = stageLengths.reduce((p, c) => p + c)
-	const framePosition = frame % totalFramesLength
-
-	const bgcolor = toCssStringRGB(...(opts.style?.backgroundColor ?? [1, 1, 1, 1]))
-	const context = dom.getContext("2d")!
-	if (framePosition < stageLengths[0]) {
-	} else if (stageLengths[0] > 0 && framePosition < stageLengths[0] + stageLengths[1]) {
-		context.save()
-		context.globalAlpha = (framePosition - stageLengths[1]) / stageLengths[1]
-		context.fillStyle = bgcolor
-		context.fillRect(0, 0, dom.width, dom.height)
-		context.restore()
-	} else if (stageLengths[1] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
-		context.save()
-		context.globalAlpha = 1.0
-		context.fillStyle = bgcolor
-		context.fillRect(0, 0, dom.width, dom.height)
-		context.restore()
-	} else if (stageLengths[2] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
-		const pos = framePosition - (stageLengths[0] + stageLengths[1] + + stageLengths[2])
-		context.save()
-		context.globalAlpha = (stageLengths[3] - pos) / stageLengths[3]
-		context.fillStyle = bgcolor
-		context.fillRect(0, 0, dom.width, dom.height)
-		context.restore()
-	} else {
-
-	}
-}
-
 
 export type FlashTextStyle = TextStyle & {
 	readonly offsetX?: number
@@ -140,8 +105,12 @@ export type FlashTextProps = {
 }
 
 export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashTextProps) {
+	if (opts.text.length === 0) {
+		return
+	}
+
 	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
-	const totalFramesLength = stageLengths.reduce((p, c) => p + c)
+	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
 	const framePosition = frame % totalFramesLength
 	const align = opts.align != null ? opts.align[((frame / totalFramesLength) | 0) % opts.align.length ?? 1] : "center"
 	const text = opts.text[((frame / totalFramesLength) | 0) % opts.text.length]
@@ -150,30 +119,30 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 	let y = 0.5 + (opts.style?.offsetY ?? 0)
 	switch (align) {
 		case "left":
-			x = 0.05 + (opts.style?.offsetX ?? 0)
+			x = -0.95 + (opts.style?.offsetX ?? 0)
 			break
 		case "right":
 			x = 0.95 + (opts.style?.offsetX ?? 0)
 			break
 		case "center":
-			y = 0.5 + (opts.style?.offsetY ?? 0)
+			y = 0.0 + (opts.style?.offsetY ?? 0)
 			break
 		case "top":
-			y = 0.05 + (opts.style?.offsetY ?? 0)
+			y = -0.95 + (opts.style?.offsetY ?? 0)
 			break
 		case "bottom":
 			y = 0.95 + (opts.style?.offsetY ?? 0)
 			break;
 		case "top-left":
-			x = 0.05 + (opts.style?.offsetX ?? 0)
-			y = 0.05 + (opts.style?.offsetY ?? 0)
+			x = -0.95 + (opts.style?.offsetX ?? 0)
+			y = -0.95 + (opts.style?.offsetY ?? 0)
 			break
 		case "top-right":
 			x = 0.95 + (opts.style?.offsetX ?? 0)
-			y = 0.05 + (opts.style?.offsetY ?? 0)
+			y = -0.95 + (opts.style?.offsetY ?? 0)
 			break
 		case "bottom-left":
-			x = 0.05 + (opts.style?.offsetX ?? 0)
+			x = -0.95 + (opts.style?.offsetX ?? 0)
 			y = 0.95 + (opts.style?.offsetY ?? 0)
 			break;
 		case "bottom-right":
@@ -196,7 +165,7 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 				...(opts.style?.fillColor != null ? { fillColor: opts.style.fillColor } : {}),
 				...(opts.style?.strokeColor != null ? { strokeColor: opts.style.strokeColor } : {}),
 				bold: opts.style?.bold,
-				size: opts.style?.size ?? 2
+				size: opts.style?.size ?? 1
 			}
 		})
 	} else if (stageLengths[1] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
@@ -210,7 +179,7 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 				...(opts.style?.fillColor != null ? { fillColor: (opts.style.fillColor) } : {}),
 				...(opts.style?.strokeColor != null ? { strokeColor: (opts.style.strokeColor) } : {}),
 				bold: opts.style?.bold,
-				size: opts.style?.size ?? 2
+				size: opts.style?.size ?? 1
 			}
 		})
 	} else if (stageLengths[2] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
@@ -225,7 +194,7 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 				...(opts.style?.fillColor != null ? { fillColor: opts.style.fillColor } : {}),
 				...(opts.style?.strokeColor != null ? { strokeColor: opts.style.strokeColor } : {}),
 				bold: opts.style?.bold,
-				size: opts.style?.size ?? 2
+				size: opts.style?.size ?? 1
 			}
 		})
 	} else {

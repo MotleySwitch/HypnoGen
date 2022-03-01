@@ -1,4 +1,4 @@
-import { Color, toCssStringRGB } from "./Color"
+import { Color, toCssStringRGB, toCssStringRGBA } from "./Color"
 
 export function clipCircle(dom: HTMLCanvasElement, origin: readonly [number, number], size: number, render: (dom: HTMLCanvasElement) => void) {
 	if (size === 0) {
@@ -46,11 +46,12 @@ export function clipRect(dom: HTMLCanvasElement, origin: readonly [number, numbe
 
 export function fill(dom: HTMLCanvasElement, color: Color) {
 	const context = dom.getContext("2d")!
-    
-    context.save()
-    context.fillStyle = toCssStringRGB(...color)
-    context.fillRect(0, 0, dom.width, dom.height)
-    context.restore()
+
+	context.save()
+	context.globalAlpha = color[3]
+	context.fillStyle = toCssStringRGB(...color)
+	context.fillRect(0, 0, dom.width, dom.height)
+	context.restore()
 }
 
 export function clear(dom: HTMLCanvasElement) {
@@ -60,9 +61,52 @@ export function clear(dom: HTMLCanvasElement) {
 
 export function opacity(dom: HTMLCanvasElement, opacity: number, render: (dom: HTMLCanvasElement) => void) {
 	const context = dom.getContext("2d")!
-    
-    context.save()
+
+	context.save()
 	context.globalAlpha = context.globalAlpha * opacity
 	render(dom)
-    context.restore()
+	context.restore()
+}
+
+
+export type FlashBoxProps = {
+	readonly style?: {
+		readonly backgroundColor?: Color
+	}
+	readonly stageLengths?: readonly [number, number, number, number]
+}
+
+export function renderFlashToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashBoxProps) {
+	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
+	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
+	const framePosition = frame % totalFramesLength
+
+	const bgcolorVals = (opts.style?.backgroundColor ?? [1, 1, 1, 1])
+	const bgcolor = toCssStringRGB(...bgcolorVals)
+	const bgalpha = bgcolorVals[3]
+	const context = dom.getContext("2d")!
+
+	if (framePosition < stageLengths[0]) {
+	} else if (stageLengths[0] > 0 && framePosition < stageLengths[0] + stageLengths[1]) {
+		context.save()
+		context.globalAlpha = bgalpha * (framePosition - stageLengths[1]) / stageLengths[1]
+		context.fillStyle = bgcolor
+		context.fillRect(0, 0, dom.width, dom.height)
+		context.restore()
+	} else if (stageLengths[1] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
+		context.save()
+		context.globalAlpha = bgalpha
+		context.fillStyle = bgcolor
+		context.fillRect(0, 0, dom.width, dom.height)
+		context.restore()
+	} else if (stageLengths[2] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
+		const pos = framePosition - (stageLengths[0] + stageLengths[1] + + stageLengths[2])
+		context.save()
+		context.globalAlpha = bgalpha * (stageLengths[3] - pos) / stageLengths[3]
+		context.fillStyle = bgcolor
+		context.fillRect(0, 0, dom.width, dom.height)
+		context.restore()
+	} else {
+
+	}
 }

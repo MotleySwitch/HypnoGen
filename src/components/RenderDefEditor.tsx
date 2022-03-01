@@ -1,4 +1,4 @@
-import { Divider, Grid, TextField, Typography } from "@material-ui/core"
+import { Grid, TextField, Typography } from "@material-ui/core"
 import React from "react"
 import type { RenderDef } from "src/effects/webgl/webgl.react"
 import { PatternEditor } from "./PatternEditor"
@@ -16,6 +16,7 @@ export const RenderDefEditor = ({ value, onChange }: RenderDefEditorProps) => {
 			<Typography variant="h2" paragraph>Pattern</Typography>
 			<PatternEditor value={value.pattern} onChange={pattern => onChange({ ...value, pattern })} />
 
+			<div style={{ padding: "1em" }} />
 			<Typography variant="h2" paragraph>Resolution</Typography>
 			<Grid container spacing={3}>
 				<Grid item xs={12} sm={6}>
@@ -32,6 +33,7 @@ export const RenderDefEditor = ({ value, onChange }: RenderDefEditorProps) => {
 				</Grid>
 			</Grid>
 
+			<div style={{ padding: "1em" }} />
 			<Typography variant="h2" paragraph>Framerate</Typography>
 			<Grid container spacing={3}>
 				<Grid item xs={12} sm={6} lg={4}>
@@ -50,7 +52,7 @@ export const RenderDefEditor = ({ value, onChange }: RenderDefEditorProps) => {
 					<TextField
 						fullWidth margin="dense"
 						type="number" label="Speed"
-						value={value.speed} onChange={e => onChange({ ...value, speed: parseInt(e.target.value, 0) })} />
+						value={value.speed} onChange={e => onChange({ ...value, speed: parseFloat(e.target.value) })} />
 				</Grid>
 			</Grid>
 		</>
