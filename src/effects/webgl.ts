@@ -2,7 +2,7 @@ import GIF from "gif.js"
 import React from "react"
 import defer from "../util/defer"
 import type { Color } from "./webgl/Color"
-import { clear, clipCircle, fill, opacity, renderFlashToCanvas } from "./webgl/Draw"
+import { clear, clipCircle, clipRect, fill, opacity, renderFlashToCanvas } from "./webgl/Draw"
 import { createPatternShader, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
 import { FlashTextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle } from "./webgl/Text"
 import type { RenderDef } from "./webgl/webgl.react"
@@ -12,7 +12,10 @@ export type DrawCommandType =
 	| "opacity"
 	| "frame-offset"
 	| "change-speed"
+	| "hide-after"
+	| "show-after"
 	| "clip-circle"
+	| "clip-rect"
 	| "pattern"
 	| "text"
 	| "flash-text"
@@ -26,7 +29,10 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = [
 	{ type: "opacity", name: "Opacity" },
 	{ type: "frame-offset", name: "Frame Offset" },
 	{ type: "change-speed", name: "Change Speed" },
+	{ type: "hide-after", name: "Hide After" },
+	{ type: "show-after", name: "Show After" },
 	{ type: "clip-circle", name: "Clip (Circle)" },
+	{ type: "clip-rect", name: "Clip (Rectangle)" },
 	{ type: "pattern", name: "Pattern" },
 	{ type: "text", name: "Text" },
 	{ type: "flash-fill", name: "Flash (Fill)" },
@@ -39,10 +45,18 @@ export type DrawCommand =
 	| { readonly type: "opacity"; readonly value: number; readonly children: readonly DrawCommand[] }
 	| { readonly type: "frame-offset"; readonly by: number; readonly children: readonly DrawCommand[] }
 	| { readonly type: "change-speed"; readonly factor: number; readonly children: readonly DrawCommand[] }
+	| { readonly type: "show-after"; readonly frames: number; readonly children: readonly DrawCommand[] }
+	| { readonly type: "hide-after"; readonly frames: number; readonly children: readonly DrawCommand[] }
 	| {
 		readonly type: "clip-circle"
 		readonly origin: readonly [number, number]
 		readonly radius: number
+		readonly children: readonly DrawCommand[]
+	}
+	| {
+		readonly type: "clip-rect"
+		readonly origin: readonly [number, number]
+		readonly size: readonly [number, number]
 		readonly children: readonly DrawCommand[]
 	}
 	| {
@@ -86,7 +100,10 @@ export const DrawCommand = (value: string): DrawCommand => {
 		case "fill": return { type: "fill", color: [0, 0, 0, 1] }
 		case "opacity": return { type: "opacity", value: 1, children: [] }
 		case "frame-offset": return { type: "frame-offset", by: 0, children: [] }
+		case "hide-after": return { type: "hide-after", frames: 0, children: [] }
+		case "show-after": return { type: "show-after", frames: 0, children: [] }
 		case "clip-circle": return { type: "clip-circle", origin: [0, 0], radius: 1, children: [] }
+		case "clip-rect": return { type: "clip-rect", origin: [-1, -1], size: [2, 2], children: [] }
 		case "pattern": return { type: "pattern", pattern: "full-inwards", colors: {} }
 		case "text": return { type: "text", value: "", coords: [0, 0] }
 		case "flash-text": return { type: "flash-text", text: [] }
@@ -120,8 +137,25 @@ export function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: num
 		case "change-speed":
 			return tree.children.forEach(child => renderTree(dom, child, frame * tree.factor, assets, opts))
 
+		case "hide-after":
+			if (frame < tree.frames) {
+				return tree.children.forEach(child => renderTree(dom, child, frame, assets, opts))
+			} else {
+				return
+			}
+
+		case "show-after":
+			if (frame >= tree.frames) {
+				return tree.children.forEach(child => renderTree(dom, child, frame - tree.frames, assets, opts))
+			} else {
+				return
+			}
+
 		case "clip-circle":
 			return clipCircle(dom, tree.origin, tree.radius, dom => tree.children.forEach(child => renderTree(dom, child, frame, assets, opts)))
+
+		case "clip-rect":
+			return clipRect(dom, tree.origin, tree.size, dom => tree.children.forEach(child => renderTree(dom, child, frame, assets, opts)))
 
 		case "pattern":
 			const shader = assets.shaders[tree.pattern]

@@ -24,15 +24,19 @@ export function clipCircle(dom: HTMLCanvasElement, origin: readonly [number, num
 	context.restore()
 }
 
-export function clipRect(dom: HTMLCanvasElement, origin: readonly [number, number], size: number, render: (dom: HTMLCanvasElement) => void) {
+export function clipRect(dom: HTMLCanvasElement, origin: readonly [number, number], size: readonly [number, number], render: (dom: HTMLCanvasElement) => void) {
+	if (size[0] === 0 || size[1] === 0) {
+		return
+	}
+	
 	const src = document.createElement("canvas")
-	src.width = size * dom.width
-	src.height = size * dom.height
+	src.width = (size[0]) * dom.width
+	src.height = (size[1]) * dom.height
 	render(src)
 
-	const ox = (origin[0] + 1.0) * (dom.width / 2)
-	const oy = (origin[1] + 1.0) * (dom.height / 2)
-	const hw = src.width / 2
+	const tl: readonly [number, number] = [origin[0] - size[0], origin[1] - size[1]]
+	const ox = ((tl[0] + 1) / 2) * (dom.width)
+	const oy = ((tl[1] + 1) / 2) * (dom.height)
 
 	const context = dom.getContext("2d")!
 	context.save()
@@ -40,7 +44,7 @@ export function clipRect(dom: HTMLCanvasElement, origin: readonly [number, numbe
 	context.rect(ox, oy, src.width, src.height);
 	context.closePath()
 	context.clip()
-	context.drawImage(src, ox - hw, oy - hw, src.width, src.height)
+	context.drawImage(src, ox, oy, src.width, src.height)
 	context.restore()
 }
 

@@ -300,6 +300,44 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 				</Accordion>
 			)
 
+		case "hide-after":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Hide After</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField inputProps={{ step: 1 }} fullWidth type="number" label="Frames" value={value.frames} onChange={e => onChange({ ...value, frames: parseInt(e.target.value || "0", 0) })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
+		case "show-after":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Show After</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField inputProps={{ step: 1 }} fullWidth type="number" label="Frames" value={value.frames} onChange={e => onChange({ ...value, frames: parseInt(e.target.value || "0", 0) })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
 		case "change-speed":
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
@@ -334,6 +372,28 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<TextField
 									type="number" label="Radius" fullWidth
 									value={value.radius ?? 1} onChange={e => onChange({ ...value, radius: parseFloat(e.target.value || "0") })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
+		case "clip-rect":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Clip (Rect)</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3} alignItems="flex-end">
+							<Grid item xs={6}>
+								<CoordsEditor label="Origin" value={value.origin} onChange={origin => onChange({ ...value, origin })} />
+							</Grid>
+							<Grid item xs={6}>
+								<CoordsEditor label="Size" value={value.size} onChange={size => onChange({ ...value, size })} />
 							</Grid>
 							<Grid item xs={12}>
 								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />

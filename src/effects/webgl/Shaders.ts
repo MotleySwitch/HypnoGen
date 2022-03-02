@@ -137,7 +137,7 @@ export const AvailableShaders = [
     },
     {
         key: "static-breathe",
-        name: "Breathe"
+        name: "Breathe (Rainbow)"
     },
     {
         key: "static-chain-circle",
