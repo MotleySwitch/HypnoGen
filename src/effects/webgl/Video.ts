@@ -1,5 +1,3 @@
-import defer from "../../util/defer";
-
 export async function renderVideoToCanvas(dom: HTMLCanvasElement, frame: number, opts: {
 	video: HTMLVideoElement,
 	fps?: number

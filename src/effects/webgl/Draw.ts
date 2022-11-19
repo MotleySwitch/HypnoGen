@@ -1,4 +1,4 @@
-import { Color, toCssStringRGB, toCssStringRGBA } from "./Color"
+import { Color, toCssStringRGB } from "./Color"
 
 export async function clipCircle(dom: HTMLCanvasElement, origin: readonly [number, number], size: number, render: (dom: HTMLCanvasElement) => Promise<void>) {
 	if (size === 0) {
@@ -55,6 +55,21 @@ export function fill(dom: HTMLCanvasElement, color: Color) {
 	context.globalAlpha = color[3]
 	context.fillStyle = toCssStringRGB(...color)
 	context.fillRect(0, 0, dom.width, dom.height)
+	context.restore()
+}
+
+export async function rotate(dom: HTMLCanvasElement, angle: number, render: (dom: HTMLCanvasElement) => Promise<void>) {
+	const context = dom.getContext("2d")!
+
+	const target = document.createElement("canvas")
+	target.width = dom.width
+	target.height = dom.height
+	await render(target)
+
+	context.save()
+	context.translate(target.width / 2, target.height / 2)
+	context.rotate(angle * 0.0174533)
+	context.drawImage(target, -target.width / 2, -target.height / 2, target.width, target.height)
 	context.restore()
 }
 

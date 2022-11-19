@@ -423,6 +423,44 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 				</Accordion>
 			)
 
+		case "rotate-by":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Rotate By</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField inputProps={{ min: 0, step: 0.25 }} fullWidth type="number" label="Angle" value={value.angle} onChange={e => onChange({ ...value, angle: parseFloat(e.target.value || "0") })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
+		case "rotating":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Rotating</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField inputProps={{ min: 0, step: 0.25 }} fullWidth type="number" label="Speed" value={value.speed} onChange={e => onChange({ ...value, speed: parseFloat(e.target.value || "0") })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
 		case "clip-circle":
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>

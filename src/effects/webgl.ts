@@ -2,7 +2,7 @@ import GIF from "gif.js"
 import React from "react"
 import defer from "../util/defer"
 import type { Color } from "./webgl/Color"
-import { clear, clipCircle, clipRect, fill, opacity, renderFlashFillToCanvas, renderFlashToCanvas } from "./webgl/Draw"
+import { clear, clipCircle, clipRect, fill, opacity, renderFlashFillToCanvas, renderFlashToCanvas, rotate } from "./webgl/Draw"
 import { loadImage, renderImageToCanvas } from "./webgl/Image"
 import { createPatternShader, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
 import { TextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle, SubliminalStyle } from "./webgl/Text"
@@ -16,6 +16,8 @@ export type DrawCommandType =
 	| "change-speed"
 	| "hide-after"
 	| "show-after"
+	| "rotate-by"
+	| "rotating"
 	| "clip-circle"
 	| "clip-rect"
 	| "pattern"
@@ -36,6 +38,8 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = [
 	{ type: "change-speed", name: "Change Speed" },
 	{ type: "hide-after", name: "Hide After" },
 	{ type: "show-after", name: "Show After" },
+	{ type: "rotate-by", name: "Rotate By" },
+	{ type: "rotating", name: "Rotating" },
 	{ type: "clip-circle", name: "Clip (Circle)" },
 	{ type: "clip-rect", name: "Clip (Rectangle)" },
 	{ type: "pattern", name: "Pattern" },
@@ -84,6 +88,16 @@ export type DrawCommand =
 		readonly style?: TextStyle
 	}
 	| {
+		readonly type: "rotating"
+		readonly speed: number
+		readonly children: readonly DrawCommand[]
+	}
+	| {
+		readonly type: "rotate-by"
+		readonly angle: number
+		readonly children: readonly DrawCommand[]
+	}
+	| {
 		readonly type: "flash"
 		readonly stages?: readonly [number, number, number, number]
 		readonly children: readonly DrawCommand[]
@@ -122,6 +136,8 @@ export const DrawCommand = (value: string): DrawCommand => {
 		case "frame-offset": return { type: "frame-offset", by: 0, children: [] }
 		case "hide-after": return { type: "hide-after", frames: 0, children: [] }
 		case "show-after": return { type: "show-after", frames: 0, children: [] }
+		case "rotate-by": return { type: "rotate-by", angle: 0, children: [] }
+		case "rotating": return { type: "rotating", speed: 6, children: [] }
 		case "clip-circle": return { type: "clip-circle", origin: [0, 0], radius: 1, children: [] }
 		case "clip-rect": return { type: "clip-rect", origin: [0, 0], size: [1, 1], children: [] }
 		case "pattern": return { type: "pattern", pattern: "full-inwards", colors: {} }
@@ -157,7 +173,7 @@ export type Assets = {
 }
 
 async function forEachAsync<T>(items: readonly T[], lambda: (value: T) => Promise<void>) {
-	for(const item of items) {
+	for (const item of items) {
 		await lambda(item)
 	}
 }
@@ -176,6 +192,15 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 
 		case "change-speed":
 			await forEachAsync(tree.children, child => renderTree(dom, child, frame * tree.factor, assets, opts))
+			return
+
+		case "rotate-by":
+			await rotate(dom, tree.angle, async dom => await forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
+			return
+
+
+		case "rotating":
+			await rotate(dom, tree.speed * frame, async dom => await forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
 			return
 
 		case "hide-after":
@@ -293,6 +318,8 @@ export function extractUsedShaders(commands: readonly DrawCommand[]): readonly s
 			case "opacity":
 			case "change-speed":
 			case "flash":
+			case "rotate-by":
+			case "rotating":
 				return [...prev, ...extractUsedShaders(curr.children)]
 			case "pattern":
 				return [...prev, curr.pattern]
@@ -311,6 +338,8 @@ export function extractUsedImages(commands: readonly DrawCommand[]): readonly st
 			case "opacity":
 			case "change-speed":
 			case "flash":
+			case "rotate-by":
+			case "rotating":
 				return [...prev, ...extractUsedImages(curr.children)]
 			case "image":
 				return [...prev, curr.image]
@@ -330,6 +359,8 @@ export function extractUsedVideos(commands: readonly DrawCommand[]): readonly st
 			case "opacity":
 			case "change-speed":
 			case "flash":
+			case "rotate-by":
+			case "rotating":
 				return [...prev, ...extractUsedVideos(curr.children)]
 			case "video":
 				return [...prev, curr.video]
