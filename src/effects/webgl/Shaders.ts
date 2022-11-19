@@ -1,302 +1,310 @@
 export const AvailableShaders = [
     {
-        key: "full-inwards",
-        name: "Inwards"
+        "key": "pendulum-bicolor-pulse",
+        "name": "Pendulum (Bi-color, Pulse)"
     },
     {
-        key: "full-bicolor-pulse",
-        name: "Bi-color (Pulse)"
+        "key": "pendulum-bicolor",
+        "name": "Pendulum (Bi-color)"
     },
     {
-        key: "full-bicolor",
-        name: "Bi-color"
+        "key": "pendulum-circles",
+        "name": "Pendulum (Circles)"
     },
     {
-        key: "full-breathe",
-        name: "Breathe"
+        "key": "pendulum-total-disc",
+        "name": "Pendulum (Disc, Total)"
     },
     {
-        key: "full-complex-1",
-        name: "Complex"
+        "key": "pendulum-disc",
+        "name": "Pendulum (Disc)"
     },
     {
-        key: "full-dot-pulse",
-        name: "Dot (Pulse)"
+        "key": "pendulum-dot",
+        "name": "Pendulum (Dot)"
     },
     {
-        key: "full-dot",
-        name: "Dot"
+        "key": "pendulum-doublesine",
+        "name": "Pendulum (Doublesine)"
     },
     {
-        key: "full-doublesine-pulse",
-        name: "Doublesine (Pulse)"
+        "key": "pendulum-oval-intermittent-spiral",
+        "name": "Pendulum (Oval, Intermittent Spiral)"
     },
     {
-        key: "full-doublesine-twisted",
-        name: "Doublesine (Twisted)"
+        "key": "pendulum-oval",
+        "name": "Pendulum (Oval)"
     },
     {
-        key: "full-doublesine",
-        name: "Doublesine"
+        "key": "pendulum-spiral-alt",
+        "name": "Pendulum (Spiral, Alt)"
     },
     {
-        key: "full-doublestream",
-        name: "Doublestream"
+        "key": "pendulum-pulsing-spiral",
+        "name": "Pendulum (Spiral, Pulsing)"
     },
     {
-        key: "full-equal-branches-pulse",
-        name: "Equal Branches (Pulse)"
+        "key": "pendulum-twisted-spiral-going-inwards",
+        "name": "Pendulum (Spiral, Twisted)"
     },
     {
-        key: "full-equal-branches",
-        name: "Equal Branches"
+        "key": "pendulum-spiral",
+        "name": "Pendulum (Spiral)"
     },
     {
-        key: "full-flower",
-        name: "Flower"
+        "key": "full-bicolor-pulse",
+        "name": "Spiral (Bi-color, Pulse)"
     },
     {
-        key: "full-half-circle",
-        name: "Half-Circle"
+        "key": "full-bicolor",
+        "name": "Spiral (Bi-color)"
     },
     {
-        key: "full-interferring-ripples-1",
-        name: "Interferring Ripples"
+        "key": "static-breathe",
+        "name": "Spiral (Breathe, Rainbow)"
     },
     {
-        key: "full-interferring-ripples-2",
-        name: "Interferring Ripples (Alt)"
+        "key": "test-breathe",
+        "name": "Spiral (Breathe, Speedy)"
     },
     {
-        key: "full-line-with-radial-pulses",
-        name: "Line with Radial Pulses"
+        "key": "full-breathe",
+        "name": "Spiral (Breathe)"
     },
     {
-        key: "full-pulse",
-        name: "Pulse"
+        "key": "test-bumpy-spiral",
+        "name": "Spiral (Bumpy)"
     },
     {
-        key: "full-pulsing-chain",
-        name: "Pulsing Chain"
+        "key": "static-chain-circle",
+        "name": "Spiral (Chain Circle)"
     },
     {
-        key: "full-semi-twisted-slow",
-        name: "Semi-Twisted (Slow)"
+        "key": "static-color-spiral",
+        "name": "Spiral (Color)"
     },
     {
-        key: "full-semi-twisted",
-        name: "Semi-Twisted"
+        "key": "test-double-color",
+        "name": "Spiral (Colors, Double)"
     },
     {
-        key: "full-sharded-alt",
-        name: "Sharded (Alt)"
+        "key": "static-range-colors",
+        "name": "Spiral (Colors, Range)"
     },
     {
-        key: "full-sharded-pulse",
-        name: "Sharded (Pulse)"
+        "key": "full-complex-1",
+        "name": "Spiral (Complex)"
     },
     {
-        key: "full-sharded",
-        name: "Sharded"
+        "key": "test-dot",
+        "name": "Spiral (Dots, Circle)"
     },
     {
-        key: "full-speedup",
-        name: "Speed-up"
+        "key": "test-full-dots",
+        "name": "Spiral (Dots, Full)"
     },
     {
-        key: "full-squares-border",
-        name: "Squares (Border)"
+        "key": "full-dot-pulse",
+        "name": "Spiral (Dots, Pulse)"
     },
     {
-        key: "full-squares",
-        name: "Squares"
+        "key": "test-small-dots",
+        "name": "Spiral (Dots, Small)"
     },
     {
-        key: "full-twisted-alt",
-        name: "Twisted (Alt)"
+        "key": "full-dot",
+        "name": "Spiral (Dots)"
     },
     {
-        key: "full-twisted-dots",
-        name: "Twisted (Dots)"
+        "key": "full-doublesine-pulse",
+        "name": "Spiral (Doublesine, Pulse)"
     },
     {
-        key: "full-twisted-lines",
-        name: "Twisted (Lines)"
+        "key": "full-doublesine-twisted",
+        "name": "Spiral (Doublesine, Twisted)"
     },
     {
-        key: "full-twisted-pulse",
-        name: "Twisted (Pulse)"
+        "key": "full-doublesine",
+        "name": "Spiral (Doublesine)"
     },
     {
-        key: "full-twisted-triplepulse",
-        name: "Twisted (Triple pulse)"
+        "key": "full-doublestream",
+        "name": "Spiral (Doublestream)"
     },
     {
-        key: "full-twisted",
-        name: "Twisted"
+        "key": "full-equal-branches-pulse",
+        "name": "Spiral (Equal Branches, Pulse)"
     },
     {
-        key: "static-breathe",
-        name: "Breathe (Rainbow)"
+        "key": "full-equal-branches",
+        "name": "Spiral (Equal Branches)"
     },
     {
-        key: "static-chain-circle",
-        name: "Chain Circle"
+        "key": "static-events",
+        "name": "Spiral (Events)"
     },
     {
-        key: "static-color-spiral",
-        name: "Spiral (Color)"
+        "key": "test-flash",
+        "name": "Spiral (Flashing)"
     },
     {
-        key: "static-events",
-        name: "Events"
+        "key": "test-flower-colors-sin",
+        "name": "Spiral (Flower, Colors, Sin)"
     },
     {
-        key: "static-range-colors",
-        name: "Range Colors"
+        "key": "full-flower",
+        "name": "Spiral (Flower)"
     },
     {
-        key: "test-breathe",
-        name: "Breathe (Test)"
+        "key": "full-half-circle",
+        "name": "Spiral (Half-Circle)"
     },
     {
-        key: "test-bumpy-spiral",
-        name: "Spiral (Bumpy)"
+        "key": "full-interferring-ripples-2",
+        "name": "Spiral (Interferring Ripples, Alt)"
     },
     {
-        key: "test-dot",
-        name: "Dot (Test)"
+        "key": "test-double-async-interference",
+        "name": "Spiral (Interferring Ripples, Double Async)"
     },
     {
-        key: "test-double-async-interference",
-        name: "Double Async Interference"
+        "key": "full-interferring-ripples-1",
+        "name": "Spiral (Interferring Ripples)"
     },
     {
-        key: "test-double-color",
-        name: "Double Color"
+        "key": "full-inwards",
+        "name": "Spiral (Inwards)"
     },
     {
-        key: "test-expanding-twists",
-        name: "Expanding Twists"
+        "key": "full-jff",
+        "name": "Spiral (JFF, Rainbow 9s loop)"
     },
     {
-        key: "test-flash",
-        name: "Flash"
+        "key": "full-jff-bw",
+        "name": "Spiral (JFF)"
     },
     {
-        key: "test-flower-colors-sin",
-        name: "Flower (Colors Sin)"
+        "key": "test-offset-2",
+        "name": "Spiral (Offset, Alt)"
     },
     {
-        key: "test-full-dots",
-        name: "Dots (Full)"
+        "key": "test-offset",
+        "name": "Spiral (Offset)"
     },
     {
-        key: "test-offset-2",
-        name: "Offset (Alt)"
+        "key": "full-pulse",
+        "name": "Spiral (Pulse)"
     },
     {
-        key: "test-offset",
-        name: "Offset"
+        "key": "full-pulsing-chain",
+        "name": "Spiral (Pulsing Chain)"
     },
     {
-        key: "test-rainbow-spiral",
-        name: "Rainbow Spiral"
+        "key": "full-line-with-radial-pulses",
+        "name": "Spiral (Radial Pulses)"
     },
     {
-        key: "test-singularity-1",
-        name: "Singularity 1"
+        "key": "full-semi-twisted-slow",
+        "name": "Spiral (Semi-Twisted, Slow)"
     },
     {
-        key: "test-singularity-2",
-        name: "Singularity 2"
+        "key": "full-semi-twisted",
+        "name": "Spiral (Semi-Twisted)"
     },
     {
-        key: "test-singularity-3",
-        name: "Singularity 3"
+        "key": "full-sharded-alt",
+        "name": "Spiral (Sharded, Alt)"
     },
     {
-        key: "test-singularity-4",
-        name: "Singularity 4"
+        "key": "full-sharded-pulse",
+        "name": "Spiral (Sharded, Pulse)"
     },
     {
-        key: "test-small-dots",
-        name: "Dots (Small)"
+        "key": "full-sharded",
+        "name": "Spiral (Sharded)"
     },
     {
-        key: "test-squares-lol",
-        name: "Squares (LOL)"
+        "key": "test-singularity-1",
+        "name": "Spiral (Singularity, 1)"
     },
     {
-        key: "test-weird-spiral-1",
-        name: "Weird Spiral 1"
+        "key": "test-singularity-2",
+        "name": "Spiral (Singularity, 2)"
     },
     {
-        key: "test-weird-spiral-2",
-        name: "Weird Spiral 2"
+        "key": "test-singularity-3",
+        "name": "Spiral (Singularity, 3)"
     },
     {
-        key: "test-weird-spiral-3",
-        name: "Weird Spiral 3"
+        "key": "test-singularity-4",
+        "name": "Spiral (Singularity, 4)"
     },
     {
-        key: "test-weird-spiral-4",
-        name: "Weird Spiral 4"
+        "key": "full-speedup",
+        "name": "Spiral (Speed-up)"
     },
     {
-        key: "test-weird-spiral-5",
-        name: "Weird Spiral 5"
+        "key": "test-rainbow-spiral",
+        "name": "Spiral (Spiral, Rainbow)"
     },
     {
-        key: "pendulum-bicolor",
-        name: "Pendulum (Bi-color)"
+        "key": "full-squares-border",
+        "name": "Spiral (Squares, Double)"
     },
     {
-        key: "pendulum-bicolor-pulse",
-        name: "Pendulum (Bi-color, Pulse)"
+        "key": "test-squares-lol",
+        "name": "Spiral (Squares, Double)"
     },
     {
-        key: "pendulum-circles",
-        name: "Pendulum (Circles)"
+        "key": "full-squares",
+        "name": "Spiral (Squares)"
     },
     {
-        key: "pendulum-disc",
-        name: "Pendulum (Disc)"
+        "key": "full-twisted-alt",
+        "name": "Spiral (Twisted, Alt)"
     },
     {
-        key: "pendulum-total-disc",
-        name: "Pendulum (Disc, Total)"
+        "key": "full-twisted-dots",
+        "name": "Spiral (Twisted, Dots)"
     },
     {
-        key: "pendulum-dot",
-        name: "Pendulum (Dot)"
+        "key": "full-twisted-lines",
+        "name": "Spiral (Twisted, Lines)"
     },
     {
-        key: "pendulum-doublesine",
-        name: "Pendulum (Doublesine)"
+        "key": "full-twisted-pulse",
+        "name": "Spiral (Twisted, Pulse)"
     },
     {
-        key: "pendulum-oval",
-        name: "Pendulum (Oval)"
+        "key": "full-twisted-triplepulse",
+        "name": "Spiral (Twisted, Triple pulse)"
     },
     {
-        key: "pendulum-oval-intermittent-spiral",
-        name: "Pendulum (Oval, Intermittent Spiral)"
+        "key": "full-twisted",
+        "name": "Spiral (Twisted)"
     },
     {
-        key: "pendulum-spiral",
-        name: "Pendulum (Spiral)"
+        "key": "test-expanding-twists",
+        "name": "Spiral (Twists, Expanding)"
     },
     {
-        key: "pendulum-pulsing-spiral",
-        name: "Pendulum (Spiral, Pulsing)"
+        "key": "test-weird-spiral-1",
+        "name": "Spiral (Weird, 1)"
     },
     {
-        key: "pendulum-twisted-spiral-going-inwards",
-        name: "Pendulum (Spiral, Twisted)"
+        "key": "test-weird-spiral-2",
+        "name": "Spiral (Weird, 2)"
     },
     {
-        key: "pendulum-spiral-alt",
-        name: "Pendulum (Spiral, Alt)"
+        "key": "test-weird-spiral-3",
+        "name": "Spiral (Weird, 3)"
+    },
+    {
+        "key": "test-weird-spiral-4",
+        "name": "Spiral (Weird, 4)"
+    },
+    {
+        "key": "test-weird-spiral-5",
+        "name": "Spiral (Weird, 5)"
     }
 ].sort((a, b) => a.name < b.name ? -1 : 1)

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useQueryJson, useQueryNumber } from "../../util/useQuery"
 import useRequestAnimationFrame, { useRequestAnimationFrameAsync } from "../../util/useRequestAnimationFrame"
 import { Assets, DrawCommand, extractUsedImages, extractUsedShaders, extractUsedVideos, ImageStore, loadImageAssets, loadShaderAssets, loadVideoAssets, render, ShaderStore, VideoStore } from "../webgl"
@@ -73,11 +73,47 @@ export const useRenderToCanvas = (target: HTMLCanvasElement | null, {
 		const actualFrame = (def.totalFrames > 0 ? frame.current % def.totalFrames : frame.current)
 		if (target != null && assets != null) {
 			await render(buffer.current, def.pattern, actualFrame, assets, { fps: def.fps })
-
+			
 			clear(target)
 			target.getContext("2d")?.drawImage(buffer.current, 0, 0)
 		}
 	}, [enable, def, assets, target])
+}
+
+
+export const useRenderFrameToCanvas = (target: HTMLCanvasElement | null, {
+	frame,
+	def,
+	assets
+}: {
+	readonly frame: number
+	readonly def: RenderDef
+	readonly assets: Assets
+}) => {
+	const buffer = React.useRef<HTMLCanvasElement>()
+	useEffect(() => {
+		if (!target) {
+			return
+		}
+
+		let abort = false 
+
+		const buffer = document.createElement("canvas")
+		buffer.width = target.width
+		buffer.height = target.height
+
+		const actualFrame = (def.totalFrames > 0 ? frame % def.totalFrames : frame)
+		if (target != null && assets != null) {
+			render(buffer, def.pattern, actualFrame, assets, { fps: def.fps }).then(() => {
+				if (!abort) {
+					clear(target)
+					target.getContext("2d")?.drawImage(buffer, 0, 0)
+				}
+			})
+		}
+
+		return () => { abort = true }
+	}, [def, assets, frame, target])
 }
 
 export function useAssets(def: RenderDef): Assets {
