@@ -21,7 +21,8 @@ export type TextProps = {
 	readonly style?: TextStyle
 }
 
-export function renderTextToCanvas(dom: HTMLCanvasElement, { value, style }: TextProps) {
+export function renderTextToCanvas(dom: HTMLCanvasElement, opts: TextProps) {
+	const { value, style } = opts
 	const screenSize = [dom.width, dom.height]
 	const fontSize = Math.min(Math.max(12, Math.min(...screenSize) / 12.5), 256) * (style?.size ?? 1)
 
@@ -68,6 +69,7 @@ export function renderTextToCanvas(dom: HTMLCanvasElement, { value, style }: Tex
 	const measure = context.measureText(value)
 
 	let px = (((1.0 + x) / 2.0) * dom.width) - (measure.width / 2.0)
+	let py = (((1.0 + y) / 2.0) * dom.height) - (fontSize / 2.0)
 	if (px < 10.0) {
 		px = 10.0
 		context.textAlign = "left"
@@ -79,7 +81,6 @@ export function renderTextToCanvas(dom: HTMLCanvasElement, { value, style }: Tex
 		px = (((1.0 + x) / 2.0) * dom.width)
 	}
 
-	let py = (((1.0 + y) / 2.0) * dom.height) - (fontSize / 2.0)
 	if (py < 10.0) {
 		py = 10.0
 	} else if (py + (fontSize / 2.0) >= (dom.height - fontSize - 10.0)) {
@@ -101,7 +102,7 @@ export function renderTextToCanvas(dom: HTMLCanvasElement, { value, style }: Tex
 	context.restore()
 }
 
-export type SubliminalStyle = Omit<TextStyle, "align">
+export type SubliminalStyle = Omit<TextStyle, "align" | "offsetX" | "offsetY">
 
 export type SubliminalProps = {
 	readonly text: readonly string[]
@@ -121,12 +122,12 @@ export function renderSubliminalToCanvas(dom: HTMLCanvasElement, frame: number, 
 	const text = opts.text[((frame / totalFramesLength) | 0) % opts.text.length]
 	const [offsetX, offsetY] = [(random(h, index * 2) * 2 - 1), (random(h, index * 2 + 1) * 2 - 1)]
 
-	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, dom => {
+	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, async dom => {
 		renderTextToCanvas(dom, {
 			value: text,
 			style: {
 				...(opts.style ?? {}),
-				align: "top-left",
+				align: "center",
 				offsetX,
 				offsetY
 			}
@@ -154,7 +155,7 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 	const align = opts.style?.align != null ? opts.style.align[((frame / totalFramesLength) | 0) % opts.style.align.length ?? 1] : "center"
 	const text = opts.text[((frame / totalFramesLength) | 0) % opts.text.length]
 
-	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, dom => {
+	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, async dom => {
 		renderTextToCanvas(dom, {
 			value: text,
 			style: {

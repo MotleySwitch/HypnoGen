@@ -1,9 +1,11 @@
 import defer from "../../util/defer";
 
-export async function renderVideoToCanvas(dom: HTMLCanvasElement, frame: number, video: HTMLVideoElement, opts: {
+export async function renderVideoToCanvas(dom: HTMLCanvasElement, frame: number, opts: {
+	video: HTMLVideoElement,
 	fps?: number
 }) {
 	const fps = opts.fps ?? 60;
+	const video = opts.video
 	const context = dom.getContext("2d")!
 
 	const w = dom.width / video.videoWidth
@@ -20,8 +22,10 @@ export async function renderVideoToCanvas(dom: HTMLCanvasElement, frame: number,
 	const looped_frame = frame % totalFrames
 	const time = (looped_frame / totalFrames) * video.duration
 	video.currentTime = time
-	await defer(() => context.drawImage(video, (dom.width - tw) / 2, (dom.height - th) / 2, tw, th))
-	await defer()
+	await new Promise<void>(resolve => video.addEventListener("canplay", e => {
+		resolve()
+	}))
+	context.drawImage(video, (dom.width - tw) / 2, (dom.height - th) / 2, tw, th)
 }
 
 export function loadVideo(href: string): Promise<HTMLVideoElement> {
@@ -29,10 +33,11 @@ export function loadVideo(href: string): Promise<HTMLVideoElement> {
 		const video = document.createElement("video")
 		function onLoad() {
 			video.removeEventListener("loadeddata", onLoad)
-			video.play()
 			resolve(video)
 		}
 		video.addEventListener("loadeddata", onLoad)
+		video.loop = true
+		video.crossOrigin = "Anonymous"
 		video.src = href
 	})
 }

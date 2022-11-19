@@ -1,12 +1,23 @@
-import { Button, Dialog, DialogActions, DialogContent } from "@material-ui/core"
 import React from "react"
+import { Button, Dialog, DialogActions, DialogContent, Grid, makeStyles } from "@material-ui/core"
+
 import { RenderDefEditor } from "./components/RenderDefEditor"
 import { RenderingSpinner } from "./components/RenderingStatus"
 import { SpiralViewer } from "./components/SpiralViewer"
 import { useRenderToGIF } from "./effects/webgl"
 import { useAssets, useRenderDef } from "./effects/webgl/webgl.react"
 
+const useSpiralViewerStyles = makeStyles({
+	page: {
+		objectFit: "cover",
+		width: "100%",
+		height: "100vh"
+	}
+}, { name: "SpiralViewer" })
+
 export default function App() {
+	const { page } = useSpiralViewerStyles()
+
 	const [openEditor, setEditorOpen] = React.useState(false)
 
 	const [def, setRenderDef] = useRenderDef()
@@ -15,10 +26,10 @@ export default function App() {
 	const [rendering, renderToGIF] = useRenderToGIF(def, assets)
 	return (
 		<>
-			<SpiralViewer def={def} assets={assets} onClick={() => setEditorOpen(true)} />
+			<SpiralViewer disabled={openEditor || rendering.current !== "no"} className={page} def={def} assets={assets} onClick={() => setEditorOpen(true)} />
 			<Dialog open={openEditor} maxWidth="xl" fullWidth>
 				<DialogContent>
-					<RenderDefEditor value={def} onChange={setRenderDef} />
+					<RenderDefEditor assets={assets} value={def} onChange={setRenderDef} />
 				</DialogContent>
 				<DialogActions>
 					<Button color="secondary" onClick={() => setEditorOpen(false)}>Close</Button>

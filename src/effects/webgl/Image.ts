@@ -83,6 +83,7 @@ export function loadImage(href: string): Promise<HTMLImageElement> {
 			resolve(image)
 		}
 		image.addEventListener("load", onLoad)
+		image.crossOrigin = "Anonymous"
 		image.src = href
 
 	})

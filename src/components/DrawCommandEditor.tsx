@@ -1,33 +1,36 @@
 import React from "react"
 
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Grid, IconButton, Menu, MenuItem, Popover, Select, Slider, TextField, Typography } from "@material-ui/core"
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Grid, IconButton, LinearProgress, Menu, MenuItem, Popover, Select, Slider, TextField, TextFieldProps, Typography } from "@material-ui/core"
 import { ExpandMore, FileCopy, Delete, ArrowUpward, ArrowDownward } from "@material-ui/icons"
 
 import { SketchPicker } from "react-color"
 
-import type { DrawCommand } from "../effects/webgl"
+import type { Assets, DrawCommand } from "../effects/webgl"
 import { Color, toCssStringRGB, toCssStringRGBA } from "../effects/webgl/Color"
 import { AvailableShaders } from "../effects/webgl/Shaders"
 import type { TextAlign as FlashTextAlign, FlashTextStyle, TextStyle, SubliminalStyle } from "../effects/webgl/Text"
 import { PatternEditor } from "./PatternEditor"
 
-export type SetEditorProps<T> = {
+export type SetEditorProps<Value, Props = undefined> = {
 	readonly label: string
-	readonly value: readonly T[]
-	readonly onChange: (value: readonly T[]) => void
+	readonly value: readonly Value[]
+	readonly onChange: (value: readonly Value[]) => void
+	readonly props?: Props
 }
 
-export const makeSetEditor = function <T, U = string>(opts: ({
-	readonly create: () => T
+export type MakeSetEditorArgs<Value, Key = string, Props = undefined> = {
+	readonly create: () => Value
 	readonly createOptions?: never
-	readonly edit: (value: T, onChange: (value: T) => void) => JSX.Element
+	readonly edit: (value: Value, onChange: (value: Value) => void, props?: Props) => JSX.Element
 } | {
-	readonly createOptions: readonly U[]
-	readonly optionName: (value: U) => string
-	readonly create: (value: U) => T
-	readonly edit: (value: T, onChange: (value: T) => void) => JSX.Element
-})) {
-	return ({ label, value, onChange }: SetEditorProps<T>) => {
+	readonly createOptions: readonly Key[]
+	readonly optionName: (value: Key) => string
+	readonly create: (value: Key) => Value
+	readonly edit: (value: Value, onChange: (value: Value) => void, props?: Props) => JSX.Element
+}
+
+export const makeSetEditor = function <Value, Key = string, Props = undefined>(opts: MakeSetEditorArgs<Value, Key, Props>) {
+	return ({ props, label, value, onChange }: SetEditorProps<Value, Props>) => {
 		const [add, setAdd] = React.useState<HTMLButtonElement | null>(null)
 		return (
 			<>
@@ -42,7 +45,7 @@ export const makeSetEditor = function <T, U = string>(opts: ({
 						</IconButton>
 					</Grid>
 					<Grid item style={{ width: "calc(100% - 240px)" }}>
-						{opts.edit(v, nv => onChange([...value.slice(0, i), nv, ...value.slice(i + 1)]))}
+						{opts.edit(v, nv => onChange([...value.slice(0, i), nv, ...value.slice(i + 1)]), props)}
 					</Grid>
 					<Grid item style={{ width: "120px" }}>
 						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, i), v, v, ...value.slice(i + 1)])}>
@@ -251,9 +254,6 @@ export const SubliminalStyleEditor = ({ label, value, onChange }: TextStyleEdito
 					<Grid item xs={6}>
 						<ColorEditor label="Stroke Color" value={value.strokeColor ?? [0, 0, 0, 1]} onChange={strokeColor => onChange({ ...value, strokeColor })} />
 					</Grid>
-					<Grid item xs={12}>
-						<CoordsEditor label="Offset" value={[value.offsetX ?? 0, value.offsetY ?? 0]} onChange={([offsetX, offsetY]) => onChange({ ...value, offsetX, offsetY })} />
-					</Grid>
 				</Grid>
 			</AccordionDetails>
 		</Accordion>
@@ -307,11 +307,13 @@ export const FlashTextStyleEditor = ({ label, value, onChange }: FlashTextStyleE
 }
 
 export type DrawCommandEditorProps = {
+	readonly assets: Assets
+	readonly fps: number
 	readonly value: DrawCommand
 	readonly onChange: (value: DrawCommand) => void
 }
 
-export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) => {
+export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandEditorProps) => {
 	const [open, setOpen] = React.useState(false)
 	switch (value.type) {
 		case "fill":
@@ -338,7 +340,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<Slider valueLabelDisplay="auto" min={0} max={1} step={0.01} value={value.value} onChange={(_, opacity) => onChange({ ...value, value: opacity as number })} />
 							</Grid>
 							<Grid item xs={12}>
-								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -357,7 +359,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<TextField inputProps={{ step: 1 }} fullWidth type="number" label="By" value={value.by} onChange={e => onChange({ ...value, by: parseInt(e.target.value || "0", 0) })} />
 							</Grid>
 							<Grid item xs={12}>
-								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -376,7 +378,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<TextField inputProps={{ step: 1 }} fullWidth type="number" label="Frames" value={value.frames} onChange={e => onChange({ ...value, frames: parseInt(e.target.value || "0", 0) })} />
 							</Grid>
 							<Grid item xs={12}>
-								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -395,7 +397,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<TextField inputProps={{ step: 1 }} fullWidth type="number" label="Frames" value={value.frames} onChange={e => onChange({ ...value, frames: parseInt(e.target.value || "0", 0) })} />
 							</Grid>
 							<Grid item xs={12}>
-								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -414,7 +416,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<TextField inputProps={{ min: 0, step: 0.25 }} fullWidth type="number" label="Factor" value={value.factor} onChange={e => onChange({ ...value, factor: parseFloat(e.target.value || "0") })} />
 							</Grid>
 							<Grid item xs={12}>
-								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -438,7 +440,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 									value={value.radius ?? 1} onChange={e => onChange({ ...value, radius: parseFloat(e.target.value || "0") })} />
 							</Grid>
 							<Grid item xs={12}>
-								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -460,7 +462,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<CoordsEditor label="Size" value={value.size} onChange={size => onChange({ ...value, size })} />
 							</Grid>
 							<Grid item xs={12}>
-								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -475,9 +477,6 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 					</AccordionSummary>
 					<AccordionDetails>
 						<Grid container spacing={3}>
-							<Grid item xs={12}>
-								<CoordsEditor label="Coords" value={value.coords} onChange={coords => onChange({ ...value, coords })} />
-							</Grid>
 							<Grid item xs={12}>
 								<TextField fullWidth label="Value" value={value.value} onChange={e => onChange({ ...value, value: e.target.value })} />
 							</Grid>
@@ -501,7 +500,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<StageEditor label="Stages" value={value.stages ?? [15, 15, 15, 15]} onChange={stages => onChange({ ...value, stages })} />
 							</Grid>
 							<Grid item xs={12}>
-								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -606,9 +605,60 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 				</Accordion>
 			)
 
+		case "image":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Image</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<BlurTextField fullWidth label="Href" value={value.image ?? ""} onChange={e => onChange({ ...value, image: e.target.value })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
+		case "video":
+			const videoElement = !!value.video && assets.videos[value.video]
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Video</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<BlurTextField fullWidth label="Href" value={value.video ?? ""} onChange={e => onChange({ ...value, video: e.target.value })} />
+							</Grid>
+							<Grid item xs={12}>
+								{videoElement
+									? <Typography variant="body1">Frames: {Math.ceil(videoElement.duration * fps)}</Typography>
+									: <LinearProgress variant="indeterminate" color="primary" />
+								}
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
 		default:
 			return (
 				<Typography variant="body1"> Unrecognized command type '{(value as { readonly type: string }).type}'</Typography>
 			)
 	}
+}
+
+const BlurTextField = (props: TextFieldProps) => {
+	const [value, setValue] = React.useState(props.value ?? props.defaultValue)
+	React.useEffect(() => {
+		if (props.value != null) { setValue(value) }
+	}, [props.value])
+	React.useEffect(() => {
+		if (props.defaultValue != null) { setValue(value) }
+	}, [props.defaultValue])
+
+	return <TextField {...props} value={value} onChange={e => setValue(e.currentTarget.value)} onBlur={props.onChange && (e => props.onChange!(e))} />
 }

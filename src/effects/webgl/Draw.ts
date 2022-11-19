@@ -1,6 +1,6 @@
 import { Color, toCssStringRGB, toCssStringRGBA } from "./Color"
 
-export function clipCircle(dom: HTMLCanvasElement, origin: readonly [number, number], size: number, render: (dom: HTMLCanvasElement) => void) {
+export async function clipCircle(dom: HTMLCanvasElement, origin: readonly [number, number], size: number, render: (dom: HTMLCanvasElement) => Promise<void>) {
 	if (size === 0) {
 		return
 	}
@@ -8,7 +8,7 @@ export function clipCircle(dom: HTMLCanvasElement, origin: readonly [number, num
 	const src = document.createElement("canvas")
 	src.width = size * Math.min(dom.width, dom.height)
 	src.height = src.width
-	render(src)
+	await render(src)
 
 	const ox = (origin[0] + 1.0) * (dom.width / 2)
 	const oy = (origin[1] + 1.0) * (dom.height / 2)
@@ -24,7 +24,7 @@ export function clipCircle(dom: HTMLCanvasElement, origin: readonly [number, num
 	context.restore()
 }
 
-export function clipRect(dom: HTMLCanvasElement, origin: readonly [number, number], size: readonly [number, number], render: (dom: HTMLCanvasElement) => void) {
+export async function clipRect(dom: HTMLCanvasElement, origin: readonly [number, number], size: readonly [number, number], render: (dom: HTMLCanvasElement) => Promise<void>) {
 	if (size[0] === 0 || size[1] === 0) {
 		return
 	}
@@ -32,7 +32,7 @@ export function clipRect(dom: HTMLCanvasElement, origin: readonly [number, numbe
 	const src = document.createElement("canvas")
 	src.width = (size[0]) * dom.width
 	src.height = (size[1]) * dom.height
-	render(src)
+	await render(src)
 
 	const tl: readonly [number, number] = [origin[0] - size[0], origin[1] - size[1]]
 	const ox = ((tl[0] + 1) / 2) * (dom.width)
@@ -63,12 +63,12 @@ export function clear(dom: HTMLCanvasElement) {
 	context.clearRect(0, 0, dom.width, dom.height)
 }
 
-export function opacity(dom: HTMLCanvasElement, opacity: number, render: (dom: HTMLCanvasElement) => void) {
+export async function opacity(dom: HTMLCanvasElement, opacity: number, render: (dom: HTMLCanvasElement) => Promise<void>) {
 	const context = dom.getContext("2d")!
 
 	context.save()
 	context.globalAlpha = context.globalAlpha * opacity
-	render(dom)
+	await render(dom)
 	context.restore()
 }
 
@@ -79,7 +79,7 @@ export type FlashProps = {
 	}
 }
 
-export function renderFlashToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashProps, render: (dom: HTMLCanvasElement) => void) {
+export async function renderFlashToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashProps, render: (dom: HTMLCanvasElement) => Promise<void>) {
 	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
 	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
 	const framePosition = frame % totalFramesLength
@@ -87,7 +87,7 @@ export function renderFlashToCanvas(dom: HTMLCanvasElement, frame: number, opts:
 	const target = document.createElement("canvas")
 	target.width = dom.width
 	target.height = dom.height
-	render(target)
+	await render(target)
 
 	const context = dom.getContext("2d")!
 	if (framePosition < stageLengths[0]) {
@@ -120,7 +120,7 @@ export type FlashBoxProps = {
 }
 
 export function renderFlashFillToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashBoxProps) {
-	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, (dom => {
+	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, (async dom => {
 		fill(dom, opts.style?.backgroundColor ?? [1, 1, 1, 1])
 	}))
 }
