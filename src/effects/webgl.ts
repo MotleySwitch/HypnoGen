@@ -265,7 +265,7 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 			if (video == null) {
 				return
 			} else {
-				return await renderVideoToCanvas(dom, frame, { video })
+				return await renderVideoToCanvas(dom, frame, { video, fps: opts?.fps })
 			}
 
 		default:

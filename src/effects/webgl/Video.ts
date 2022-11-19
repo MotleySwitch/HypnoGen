@@ -4,7 +4,7 @@ export async function renderVideoToCanvas(dom: HTMLCanvasElement, frame: number,
 	video: HTMLVideoElement,
 	fps?: number
 }) {
-	const fps = opts.fps ?? 60;
+	const fps = opts.fps ?? 60
 	const video = opts.video
 	const context = dom.getContext("2d")!
 
@@ -22,9 +22,14 @@ export async function renderVideoToCanvas(dom: HTMLCanvasElement, frame: number,
 	const looped_frame = frame % totalFrames
 	const time = (looped_frame / totalFrames) * video.duration
 	video.currentTime = time
-	await new Promise<void>(resolve => video.addEventListener("canplay", e => {
-		resolve()
-	}))
+
+	await new Promise<void>(resolve => {
+		function onCanPlay() {
+			video.removeEventListener("canplay", onCanPlay)
+			resolve()
+		}
+		video.addEventListener("canplay", onCanPlay)
+	})
 	context.drawImage(video, (dom.width - tw) / 2, (dom.height - th) / 2, tw, th)
 }
 
