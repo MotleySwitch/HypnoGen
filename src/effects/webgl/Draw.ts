@@ -28,7 +28,7 @@ export function clipRect(dom: HTMLCanvasElement, origin: readonly [number, numbe
 	if (size[0] === 0 || size[1] === 0) {
 		return
 	}
-	
+
 	const src = document.createElement("canvas")
 	src.width = (size[0]) * dom.width
 	src.height = (size[1]) * dom.height
@@ -72,6 +72,45 @@ export function opacity(dom: HTMLCanvasElement, opacity: number, render: (dom: H
 	context.restore()
 }
 
+export type FlashProps = {
+	readonly stageLengths?: readonly [number, number, number, number]
+	readonly style?: {
+		readonly alpha?: number
+	}
+}
+
+export function renderFlashToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashProps, render: (dom: HTMLCanvasElement) => void) {
+	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
+	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
+	const framePosition = frame % totalFramesLength
+
+	const target = document.createElement("canvas")
+	target.width = dom.width
+	target.height = dom.height
+	render(target)
+
+	const context = dom.getContext("2d")!
+	if (framePosition < stageLengths[0]) {
+	} else if (stageLengths[0] > 0 && framePosition < stageLengths[0] + stageLengths[1]) {
+		context.save()
+		context.globalAlpha = (opts.style?.alpha ?? 1) * (framePosition - stageLengths[1]) / stageLengths[1]
+		context.drawImage(target, 0, 0, target.width, target.height)
+		context.restore()
+	} else if (stageLengths[1] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
+		context.save()
+		context.globalAlpha = (opts.style?.alpha ?? 1)
+		context.drawImage(target, 0, 0, target.width, target.height)
+		context.restore()
+	} else if (stageLengths[2] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
+		const pos = framePosition - (stageLengths[0] + stageLengths[1] + + stageLengths[2])
+		context.save()
+		context.globalAlpha = (opts.style?.alpha ?? 1) * (stageLengths[3] - pos) / stageLengths[3]
+		context.drawImage(target, 0, 0, target.width, target.height)
+		context.restore()
+	} else {
+
+	}
+}
 
 export type FlashBoxProps = {
 	readonly style?: {
@@ -80,37 +119,8 @@ export type FlashBoxProps = {
 	readonly stageLengths?: readonly [number, number, number, number]
 }
 
-export function renderFlashToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashBoxProps) {
-	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
-	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
-	const framePosition = frame % totalFramesLength
-
-	const bgcolorVals = (opts.style?.backgroundColor ?? [1, 1, 1, 1])
-	const bgcolor = toCssStringRGB(...bgcolorVals)
-	const bgalpha = bgcolorVals[3]
-	const context = dom.getContext("2d")!
-
-	if (framePosition < stageLengths[0]) {
-	} else if (stageLengths[0] > 0 && framePosition < stageLengths[0] + stageLengths[1]) {
-		context.save()
-		context.globalAlpha = bgalpha * (framePosition - stageLengths[1]) / stageLengths[1]
-		context.fillStyle = bgcolor
-		context.fillRect(0, 0, dom.width, dom.height)
-		context.restore()
-	} else if (stageLengths[1] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
-		context.save()
-		context.globalAlpha = bgalpha
-		context.fillStyle = bgcolor
-		context.fillRect(0, 0, dom.width, dom.height)
-		context.restore()
-	} else if (stageLengths[2] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
-		const pos = framePosition - (stageLengths[0] + stageLengths[1] + + stageLengths[2])
-		context.save()
-		context.globalAlpha = bgalpha * (stageLengths[3] - pos) / stageLengths[3]
-		context.fillStyle = bgcolor
-		context.fillRect(0, 0, dom.width, dom.height)
-		context.restore()
-	} else {
-
-	}
+export function renderFlashFillToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashBoxProps) {
+	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, (dom => {
+		fill(dom, opts.style?.backgroundColor ?? [1, 1, 1, 1])
+	}))
 }

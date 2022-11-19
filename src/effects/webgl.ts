@@ -2,9 +2,9 @@ import GIF from "gif.js"
 import React from "react"
 import defer from "../util/defer"
 import type { Color } from "./webgl/Color"
-import { clear, clipCircle, clipRect, fill, opacity, renderFlashToCanvas } from "./webgl/Draw"
+import { clear, clipCircle, clipRect, fill, opacity, renderFlashFillToCanvas, renderFlashToCanvas } from "./webgl/Draw"
 import { createPatternShader, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
-import { FlashTextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle } from "./webgl/Text"
+import { TextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle, SubliminalStyle } from "./webgl/Text"
 import type { RenderDef } from "./webgl/webgl.react"
 
 export type DrawCommandType =
@@ -18,8 +18,9 @@ export type DrawCommandType =
 	| "clip-rect"
 	| "pattern"
 	| "text"
-	| "flash-text"
 	| "subliminal"
+	| "flash"
+	| "flash-text"
 	| "flash-fill"
 
 export type DrawCommandDef = { readonly type: DrawCommandType; readonly name: string }
@@ -35,6 +36,7 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = [
 	{ type: "clip-rect", name: "Clip (Rectangle)" },
 	{ type: "pattern", name: "Pattern" },
 	{ type: "text", name: "Text" },
+	{ type: "flash", name: "Flash" },
 	{ type: "flash-fill", name: "Flash (Fill)" },
 	{ type: "flash-text", name: "Flash (Text)" },
 	{ type: "subliminal", name: "Subliminal" }
@@ -77,17 +79,22 @@ export type DrawCommand =
 		readonly style?: TextStyle
 	}
 	| {
+		readonly type: "flash"
+		readonly stages?: readonly [number, number, number, number]
+		readonly children: readonly DrawCommand[]
+	}
+	| {
 		readonly type: "flash-text"
 		readonly text: readonly string[]
 		readonly stages?: readonly [number, number, number, number]
 		readonly style?: FlashTextStyle
-		readonly align?: readonly FlashTextAlign[]
+		readonly align?: readonly TextAlign[]
 	}
 	| {
 		readonly type: "subliminal"
 		readonly text: readonly string[]
 		readonly stages?: readonly [number, number, number, number]
-		readonly style?: FlashTextStyle
+		readonly style?: SubliminalStyle
 	}
 	| {
 		readonly type: "flash-fill"
@@ -103,9 +110,10 @@ export const DrawCommand = (value: string): DrawCommand => {
 		case "hide-after": return { type: "hide-after", frames: 0, children: [] }
 		case "show-after": return { type: "show-after", frames: 0, children: [] }
 		case "clip-circle": return { type: "clip-circle", origin: [0, 0], radius: 1, children: [] }
-		case "clip-rect": return { type: "clip-rect", origin: [-1, -1], size: [2, 2], children: [] }
+		case "clip-rect": return { type: "clip-rect", origin: [0, 0], size: [1, 1], children: [] }
 		case "pattern": return { type: "pattern", pattern: "full-inwards", colors: {} }
 		case "text": return { type: "text", value: "", coords: [0, 0] }
+		case "flash": return { type: "flash", stages: [15, 15, 15, 15], children: [] }
 		case "flash-text": return { type: "flash-text", text: [] }
 		case "subliminal": return { type: "subliminal", text: [] }
 		case "flash-fill": return { type: "flash-fill", color: [1, 1, 1, 1] }
@@ -177,16 +185,6 @@ export function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: num
 		case "text":
 			return renderTextToCanvas(dom, {
 				value: tree.value,
-				x: tree.coords[0],
-				y: tree.coords[1],
-				style: tree.style
-			})
-
-		case "flash-text":
-			return renderFlashTextToCanvas(dom, frame, {
-				text: tree.text,
-				align: tree.align,
-				stageLengths: tree.stages,
 				style: tree.style
 			})
 
@@ -197,8 +195,19 @@ export function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: num
 				style: tree.style
 			})
 
+		case "flash":
+			return renderFlashToCanvas(dom, frame, { stageLengths: tree.stages }, dom => tree.children.forEach(child => renderTree(dom, child, frame, assets, opts)))
+
+
+		case "flash-text":
+			return renderFlashTextToCanvas(dom, frame, {
+				text: tree.text,
+				stageLengths: tree.stages,
+				style: tree.style
+			})
+
 		case "flash-fill":
-			return renderFlashToCanvas(dom, frame, {
+			return renderFlashFillToCanvas(dom, frame, {
 				stageLengths: tree.stages,
 				style: {
 					backgroundColor: tree.color
@@ -227,6 +236,7 @@ export function extractUsedShaders(commands: readonly DrawCommand[]): readonly s
 			case "frame-offset":
 			case "opacity":
 			case "change-speed":
+			case "flash":
 				return [...prev, ...extractUsedShaders(curr.children)]
 			case "pattern":
 				return [...prev, curr.pattern]

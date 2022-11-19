@@ -8,7 +8,7 @@ import { SketchPicker } from "react-color"
 import type { DrawCommand } from "../effects/webgl"
 import { Color, toCssStringRGB, toCssStringRGBA } from "../effects/webgl/Color"
 import { AvailableShaders } from "../effects/webgl/Shaders"
-import type { FlashTextAlign, FlashTextStyle, TextStyle } from "../effects/webgl/Text"
+import type { TextAlign as FlashTextAlign, FlashTextStyle, TextStyle, SubliminalStyle } from "../effects/webgl/Text"
 import { PatternEditor } from "./PatternEditor"
 
 export type SetEditorProps<T> = {
@@ -164,15 +164,34 @@ export const CoordsEditor = ({ label, value, onChange }: CoordsEditorProps) => {
 	)
 }
 
+export type TextAlignSelectProps = {
+	readonly label: string
+	readonly value: FlashTextAlign
+	readonly onChange: (value: FlashTextAlign) => void
+}
+
+export const TextAlignSelect = ({ label, value, onChange }: TextAlignSelectProps) => {
+	return (
+		<Select label={label} fullWidth value={value} onChange={e => onChange(e.target.value as FlashTextAlign)}>
+			<MenuItem value="center">Center</MenuItem>
+			<MenuItem value="top">Top</MenuItem>
+			<MenuItem value="bottom">Bottom</MenuItem>
+			<MenuItem value="left">Left</MenuItem>
+			<MenuItem value="right">Right</MenuItem>
+			<MenuItem value="top-left">Top Left</MenuItem>
+			<MenuItem value="top-right">Top Right</MenuItem>
+			<MenuItem value="bottom-left">Bottom Left</MenuItem>
+			<MenuItem value="bottom-right">Bottom Right</MenuItem>
+		</Select>
+	)
+}
 export type TextStyleEditorProps = {
 	readonly label: string
 	readonly value: TextStyle
 	readonly onChange: (value: TextStyle) => void
-
-	readonly children?: React.ReactNode
 }
 
-export const TextStyleEditor = ({ label, value, onChange, children }: TextStyleEditorProps) => {
+export const TextStyleEditor = ({ label, value, onChange }: TextStyleEditorProps) => {
 	const [open, setOpen] = React.useState(false)
 	return (
 		<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
@@ -193,12 +212,60 @@ export const TextStyleEditor = ({ label, value, onChange, children }: TextStyleE
 					<Grid item xs={6}>
 						<ColorEditor label="Stroke Color" value={value.strokeColor ?? [0, 0, 0, 1]} onChange={strokeColor => onChange({ ...value, strokeColor })} />
 					</Grid>
-					{children}
+					<Grid item xs={12}>
+						<TextAlignSelect label="Align" value={value.align ?? "center"} onChange={align => onChange({ ...value, align })} />
+					</Grid>
+					<Grid item xs={12}>
+						<CoordsEditor label="Offset" value={[value.offsetX ?? 0, value.offsetY ?? 0]} onChange={([offsetX, offsetY]) => onChange({ ...value, offsetX, offsetY })} />
+					</Grid>
 				</Grid>
 			</AccordionDetails>
 		</Accordion>
 	)
 }
+
+export type SubliminalStyleEditorProps = {
+	readonly label: string
+	readonly value: SubliminalStyle
+	readonly onChange: (value: SubliminalStyle) => void
+}
+
+export const SubliminalStyleEditor = ({ label, value, onChange }: TextStyleEditorProps) => {
+	const [open, setOpen] = React.useState(false)
+	return (
+		<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+			<AccordionSummary expandIcon={<ExpandMore />}>
+				<Typography variant="h3">{label}</Typography>
+			</AccordionSummary>
+			<AccordionDetails>
+				<Grid container spacing={3}>
+					<Grid item xs={6}>
+						<TextField inputProps={{ min: 0, step: 0.1 }} type="number" label="Font size" fullWidth value={value.size ?? 1} onChange={v => onChange({ ...value, size: parseFloat(v.target.value || "0") })} />
+					</Grid>
+					<Grid item xs={6}>
+						<TextField inputProps={{ min: 0, step: 1 }} type="number" label="Line width" fullWidth value={value.lineWidth ?? 1} onChange={v => onChange({ ...value, lineWidth: parseFloat(v.target.value || "0") })} />
+					</Grid>
+					<Grid item xs={6}>
+						<ColorEditor label="Fill Color" value={value.fillColor ?? [1, 1, 1, 1]} onChange={fillColor => onChange({ ...value, fillColor })} />
+					</Grid>
+					<Grid item xs={6}>
+						<ColorEditor label="Stroke Color" value={value.strokeColor ?? [0, 0, 0, 1]} onChange={strokeColor => onChange({ ...value, strokeColor })} />
+					</Grid>
+					<Grid item xs={12}>
+						<CoordsEditor label="Offset" value={[value.offsetX ?? 0, value.offsetY ?? 0]} onChange={([offsetX, offsetY]) => onChange({ ...value, offsetX, offsetY })} />
+					</Grid>
+				</Grid>
+			</AccordionDetails>
+		</Accordion>
+	)
+}
+
+
+
+const AlignSetEditor = makeSetEditor<FlashTextAlign>({
+	create: () => ("center" as FlashTextAlign),
+	edit: (value, onChange) => <TextAlignSelect label="align" value={value} onChange={onChange} />
+})
 
 export type FlashTextStyleEditorProps = {
 	readonly label: string
@@ -207,33 +274,35 @@ export type FlashTextStyleEditorProps = {
 }
 
 export const FlashTextStyleEditor = ({ label, value, onChange }: FlashTextStyleEditorProps) => {
+	const [open, setOpen] = React.useState(false)
 	return (
-		<TextStyleEditor label={label} value={value} onChange={b => onChange({ ...value, ...b })}>
-			<Grid item xs={12}>
-				<CoordsEditor label="Offset" value={[value.offsetX ?? 0, value.offsetY ?? 0]} onChange={([offsetX, offsetY]) => onChange({ ...value, offsetX, offsetY })} />
-			</Grid>
-		</TextStyleEditor>
-	)
-}
-
-export type FlashTextAlignSelectProps = {
-	readonly value: FlashTextAlign
-	readonly onChange: (value: FlashTextAlign) => void
-}
-
-export const FlashTextAlignSelect = ({ value, onChange }: FlashTextAlignSelectProps) => {
-	return (
-		<Select label="align" fullWidth value={value} onChange={e => onChange(e.target.value as FlashTextAlign)}>
-			<MenuItem value="center">Center</MenuItem>
-			<MenuItem value="top">Top</MenuItem>
-			<MenuItem value="bottom">Bottom</MenuItem>
-			<MenuItem value="left">Left</MenuItem>
-			<MenuItem value="right">Right</MenuItem>
-			<MenuItem value="top-left">Top Left</MenuItem>
-			<MenuItem value="top-right">Top Right</MenuItem>
-			<MenuItem value="bottom-left">Bottom Left</MenuItem>
-			<MenuItem value="bottom-right">Bottom Right</MenuItem>
-		</Select>
+		<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+			<AccordionSummary expandIcon={<ExpandMore />}>
+				<Typography variant="h3">{label}</Typography>
+			</AccordionSummary>
+			<AccordionDetails>
+				<Grid container spacing={3}>
+					<Grid item xs={6}>
+						<TextField inputProps={{ min: 0, step: 0.1 }} type="number" label="Font size" fullWidth value={value.size ?? 1} onChange={v => onChange({ ...value, size: parseFloat(v.target.value || "0") })} />
+					</Grid>
+					<Grid item xs={6}>
+						<TextField inputProps={{ min: 0, step: 1 }} type="number" label="Line width" fullWidth value={value.lineWidth ?? 1} onChange={v => onChange({ ...value, lineWidth: parseFloat(v.target.value || "0") })} />
+					</Grid>
+					<Grid item xs={6}>
+						<ColorEditor label="Fill Color" value={value.fillColor ?? [1, 1, 1, 1]} onChange={fillColor => onChange({ ...value, fillColor })} />
+					</Grid>
+					<Grid item xs={6}>
+						<ColorEditor label="Stroke Color" value={value.strokeColor ?? [0, 0, 0, 1]} onChange={strokeColor => onChange({ ...value, strokeColor })} />
+					</Grid>
+					<Grid item xs={12}>
+						<CoordsEditor label="Offset" value={[value.offsetX ?? 0, value.offsetY ?? 0]} onChange={([offsetX, offsetY]) => onChange({ ...value, offsetX, offsetY })} />
+					</Grid>
+					<Grid item xs={12}>
+						<AlignSetEditor label="Align" value={value.align ?? []} onChange={align => onChange({ ...value, align })} />
+					</Grid>
+				</Grid>
+			</AccordionDetails>
+		</Accordion>
 	)
 }
 
@@ -241,11 +310,6 @@ export type DrawCommandEditorProps = {
 	readonly value: DrawCommand
 	readonly onChange: (value: DrawCommand) => void
 }
-
-const AlignSetEditor = makeSetEditor<FlashTextAlign>({
-	create: () => ("center" as FlashTextAlign),
-	edit: (value, onChange) => <FlashTextAlignSelect value={value} onChange={onChange} />
-})
 
 export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) => {
 	const [open, setOpen] = React.useState(false)
@@ -425,6 +489,25 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 				</Accordion>
 			)
 
+		case "flash":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Flash</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<StageEditor label="Stages" value={value.stages ?? [15, 15, 15, 15]} onChange={stages => onChange({ ...value, stages })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
 		case "flash-fill":
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
@@ -459,9 +542,6 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<StageEditor label="Stages" value={value.stages ?? [15, 15, 15, 15]} onChange={stages => onChange({ ...value, stages })} />
 							</Grid>
 							<Grid item xs={12}>
-								<AlignSetEditor label="Align" value={value.align ?? []} onChange={align => onChange({ ...value, align })} />
-							</Grid>
-							<Grid item xs={12}>
 								<FlashTextStyleEditor label="Styles" value={value.style ?? {}} onChange={style => onChange({ ...value, style })} />
 							</Grid>
 						</Grid>
@@ -484,7 +564,7 @@ export const DrawCommandEditor = ({ value, onChange }: DrawCommandEditorProps) =
 								<TextField multiline fullWidth label="Messages" value={value.text.join("\n")} onChange={e => onChange({ ...value, text: e.target.value.split("\n") })} />
 							</Grid>
 							<Grid item xs={12}>
-								<TextStyleEditor label="Styles" value={value.style ?? {}} onChange={style => onChange({ ...value, style })} />
+								<SubliminalStyleEditor label="Styles" value={value.style ?? {}} onChange={style => onChange({ ...value, style })} />
 							</Grid>
 						</Grid>
 					</AccordionDetails>
