@@ -1,7 +1,7 @@
 import React, { useEffect } from "react"
 import { useQueryJson, useQueryNumber } from "../../util/useQuery"
 import useRequestAnimationFrame, { useRequestAnimationFrameAsync } from "../../util/useRequestAnimationFrame"
-import { Assets, DrawCommand, extractUsedImages, extractUsedShaders, extractUsedVideos, ImageStore, loadImageAssets, loadShaderAssets, loadVideoAssets, render, ShaderStore, VideoStore } from "../webgl"
+import { Assets, DrawCommand, extractUsedImages, extractUsedLocalShaders, extractUsedShaders, extractUsedVideos, ImageStore, loadImageAssets, loadLocalShaderAssets, loadShaderAssets, loadVideoAssets, render, ShaderStore, VideoStore } from "../webgl"
 import { clear } from "./Draw"
 
 export type RenderDef = {
@@ -118,20 +118,30 @@ export const useRenderFrameToCanvas = (target: HTMLCanvasElement | null, {
 
 export function useAssets(def: RenderDef): Assets {
 	const shaderPaths = React.useMemo(() => extractUsedShaders(def.pattern), [def.pattern])
+	const localShaderDefs = React.useMemo(() => extractUsedLocalShaders(def.pattern), [def.pattern])
 	const imagePaths = React.useMemo(() => extractUsedImages(def.pattern), [def.pattern])
 	const videoPaths = React.useMemo(() => extractUsedVideos(def.pattern), [def.pattern])
 
-	const [shaders, setShaders] = React.useState<ShaderStore>({})
+	const [remoteShaders, setRemoteShaders] = React.useState<ShaderStore>({})
+	const [localShaders, setLocalShaders] = React.useState<ShaderStore>({})
 	const [images, setImages] = React.useState<ImageStore>({})
 	const [videos, setVideos] = React.useState<VideoStore>({})
 
 	React.useEffect(() => {
 		let abort = false
 		loadShaderAssets(def.resolution, shaderPaths).then((result) => {
-			if (!abort) { setShaders(result) }
+			if (!abort) { setRemoteShaders(result) }
 		})
 		return () => { abort = true }
 	}, [def.resolution, shaderPaths.join("|")])
+
+	React.useEffect(() => {
+		let abort = false
+		loadLocalShaderAssets(def.resolution, localShaderDefs).then((result) => {
+			if (!abort) { setLocalShaders(result) }
+		})
+		return () => { abort = true }
+	}, [def.resolution, localShaderDefs.map(([k, v]) => k + "|" + v).join("|")])
 
 	React.useEffect(() => {
 		let abort = false
@@ -148,6 +158,8 @@ export function useAssets(def: RenderDef): Assets {
 		})
 		return () => { abort = true }
 	}, [videoPaths.join("|")])
+
+	const shaders = React.useMemo(() => ({ ...localShaders, ...remoteShaders }), [localShaders, remoteShaders])
 
 	return { shaders, images, videos }
 }

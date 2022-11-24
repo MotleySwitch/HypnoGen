@@ -2,9 +2,9 @@ import GIF from "gif.js"
 import React from "react"
 import defer from "../util/defer"
 import type { Color } from "./webgl/Color"
-import { clear, clipCircle, clipRect, fill, opacity, renderFlashFillToCanvas, renderFlashToCanvas, rotate } from "./webgl/Draw"
+import { clear, clipCircle, clipRect, fill, opacity, renderFadeInToCanvas, renderFadeOutToCanvas, renderFlashFillToCanvas, renderFlashToCanvas, rotate } from "./webgl/Draw"
 import { loadImage, renderImageToCanvas } from "./webgl/Image"
-import { createPatternShader, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
+import { createPatternShader, createPatternShaderFromText, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
 import { TextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle, SubliminalStyle } from "./webgl/Text"
 import { loadVideo, renderVideoToCanvas } from "./webgl/Video"
 import type { RenderDef } from "./webgl/webgl.react"
@@ -21,8 +21,11 @@ export type DrawCommandType =
 	| "clip-circle"
 	| "clip-rect"
 	| "pattern"
+	| "local-pattern"
 	| "text"
 	| "subliminal"
+	| "fade-in"
+	| "fade-out"
 	| "flash"
 	| "flash-text"
 	| "flash-fill"
@@ -43,7 +46,11 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = [
 	{ type: "clip-circle", name: "Clip (Circle)" },
 	{ type: "clip-rect", name: "Clip (Rectangle)" },
 	{ type: "pattern", name: "Pattern" },
+	{ type: "local-pattern", name: "Pattern (GLSL)" },
 	{ type: "text", name: "Text" },
+	{ type: "flash", name: "Flash" },
+	{ type: "fade-in", name: "Fade In" },
+	{ type: "fade-out", name: "Fade Out" },
 	{ type: "flash", name: "Flash" },
 	{ type: "flash-fill", name: "Flash (Fill)" },
 	{ type: "flash-text", name: "Flash (Text)" },
@@ -83,6 +90,11 @@ export type DrawCommand =
 		}
 	}
 	| {
+		readonly type: "local-pattern"
+		readonly patternKey: string
+		readonly patternBody: string
+	}
+	| {
 		readonly type: "text"
 		readonly value: string
 		readonly style?: TextStyle
@@ -95,6 +107,21 @@ export type DrawCommand =
 	| {
 		readonly type: "rotate-by"
 		readonly angle: number
+		readonly children: readonly DrawCommand[]
+	}
+	| {
+		readonly type: "fade-in"
+		readonly length?: number
+		readonly children: readonly DrawCommand[]
+	}
+	| {
+		readonly type: "fade-out"
+		readonly length?: number
+		readonly children: readonly DrawCommand[]
+	}
+	| {
+		readonly type: "flash"
+		readonly stages?: readonly [number, number, number, number]
 		readonly children: readonly DrawCommand[]
 	}
 	| {
@@ -141,7 +168,28 @@ export const DrawCommand = (value: string): DrawCommand => {
 		case "clip-circle": return { type: "clip-circle", origin: [0, 0], radius: 1, children: [] }
 		case "clip-rect": return { type: "clip-rect", origin: [0, 0], size: [1, 1], children: [] }
 		case "pattern": return { type: "pattern", pattern: "full-inwards", colors: {} }
+		case "local-pattern": return {
+			type: "local-pattern",
+			patternKey: Math.random().toString(),
+			patternBody: `uniform float time;
+uniform vec2 resolution;
+uniform vec2 aspect;
+
+void main(void) {
+	vec2 uv = (gl_FragCoord.xy - resolution.xy * 0.5) / resolution.x;
+	vec3 col_v = vec3(
+		(0.30 + 0.7*cos(-time * 30.4 + length(uv) * 40.0 + 0.00000000000 - atan(uv.x, uv.y))), 
+		(0.30 + 0.7*cos(-time * 14.5 + length(uv) * 40.0 + 4.18879020479 - atan(uv.x, uv.y))), 
+		(0.30 + 0.7*cos(-time * 20.0 + length(uv) * 40.0 + 2.09439510239 - atan(uv.x, uv.y)))
+	);
+
+	gl_FragColor = vec4(col_v, 1.0);
+}
+`
+		}
 		case "text": return { type: "text", value: "" }
+		case "fade-in": return { type: "fade-in", length: 60, children: [] }
+		case "fade-out": return { type: "fade-out", length: 60, children: [] }
 		case "flash": return { type: "flash", stages: [15, 15, 15, 15], children: [] }
 		case "flash-text": return { type: "flash-text", text: [] }
 		case "subliminal": return { type: "subliminal", text: [] }
@@ -244,6 +292,18 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 				})
 			}
 
+		case "local-pattern": {
+			const shader = assets.shaders[tree.patternKey]
+			if (shader == null) {
+				return
+			} else {
+				return renderSpiralShaderToCanvas(dom, frame, {
+					shader,
+					fps: opts?.fps
+				})
+			}
+		}
+
 		case "text":
 			return renderTextToCanvas(dom, {
 				value: tree.value,
@@ -257,8 +317,16 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 				style: tree.style
 			})
 
+		case "fade-in":
+			await renderFadeInToCanvas(dom, frame, { length: tree.length }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
+			return
+
+		case "fade-out":
+			await renderFadeOutToCanvas(dom, frame, { length: tree.length }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
+			return
+
 		case "flash":
-			await renderFlashToCanvas(dom, frame, { stageLengths: tree.stages }, dom => forEachAsync(tree.children, async child => renderTree(dom, child, frame, assets, opts)))
+			await renderFlashToCanvas(dom, frame, { stageLengths: tree.stages }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
 			return
 
 		case "flash-text":
@@ -312,19 +380,34 @@ export async function render(
 export function extractUsedShaders(commands: readonly DrawCommand[]): readonly string[] {
 	return commands.reduce((prev: readonly string[], curr: DrawCommand) => {
 		switch (curr.type) {
-			case "clip-circle":
-			case "clip-rect":
-			case "frame-offset":
-			case "opacity":
-			case "change-speed":
-			case "flash":
-			case "rotate-by":
-			case "rotating":
-				return [...prev, ...extractUsedShaders(curr.children)]
 			case "pattern":
 				return [...prev, curr.pattern]
+
 			default:
-				return prev
+				const $curr = (curr as { readonly children?: DrawCommand[] })
+				if ($curr.children != null) {
+					return [...prev, ...extractUsedShaders($curr.children!)]
+				} else {
+					return prev
+				}
+		}
+	}, [])
+}
+
+
+export function extractUsedLocalShaders(commands: readonly DrawCommand[]): readonly [string, string][] {
+	return commands.reduce((prev: readonly [string, string][], curr: DrawCommand): readonly [string, string][] => {
+		switch (curr.type) {
+			case "local-pattern":
+				return [...prev, [curr.patternKey, curr.patternBody]]
+
+			default:
+				const $curr = (curr as { readonly children?: DrawCommand[] })
+				if ($curr.children != null) {
+					return [...prev, ...extractUsedLocalShaders($curr.children!)]
+				} else {
+					return prev
+				}
 		}
 	}, [])
 }
@@ -332,19 +415,15 @@ export function extractUsedShaders(commands: readonly DrawCommand[]): readonly s
 export function extractUsedImages(commands: readonly DrawCommand[]): readonly string[] {
 	return commands.reduce((prev: readonly string[], curr: DrawCommand) => {
 		switch (curr.type) {
-			case "clip-circle":
-			case "clip-rect":
-			case "frame-offset":
-			case "opacity":
-			case "change-speed":
-			case "flash":
-			case "rotate-by":
-			case "rotating":
-				return [...prev, ...extractUsedImages(curr.children)]
 			case "image":
 				return [...prev, curr.image]
 			default:
-				return prev
+				const $curr = (curr as { readonly children?: DrawCommand[] })
+				if ($curr.children != null) {
+					return [...prev, ...extractUsedImages($curr.children!)]
+				} else {
+					return prev
+				}
 		}
 	}, [])
 }
@@ -353,19 +432,16 @@ export function extractUsedImages(commands: readonly DrawCommand[]): readonly st
 export function extractUsedVideos(commands: readonly DrawCommand[]): readonly string[] {
 	return commands.reduce((prev: readonly string[], curr: DrawCommand) => {
 		switch (curr.type) {
-			case "clip-circle":
-			case "clip-rect":
-			case "frame-offset":
-			case "opacity":
-			case "change-speed":
-			case "flash":
-			case "rotate-by":
-			case "rotating":
-				return [...prev, ...extractUsedVideos(curr.children)]
 			case "video":
 				return [...prev, curr.video]
+
 			default:
-				return prev
+				const $curr = (curr as { readonly children?: DrawCommand[] })
+				if ($curr.children != null) {
+					return [...prev, ...extractUsedVideos($curr.children!)]
+				} else {
+					return prev
+				}
 		}
 	}, [])
 }
@@ -373,7 +449,22 @@ export function extractUsedVideos(commands: readonly DrawCommand[]): readonly st
 export async function loadShaderAssets(size: readonly [number, number], shaders: readonly string[]): Promise<ShaderStore> {
 	const results = await Promise.all(shaders.map(async shader => {
 		try {
-			return [shader, await createPatternShader(size, "shaders/spiral.vs", `shaders/${shader}.fs`)] as [string, PatternShader] | null
+			return [shader, await createPatternShader(size, `shaders/${shader}.fs`)] as [string, PatternShader] | null
+		} catch (err) {
+			return null
+		}
+	}))
+
+	return results
+		.filter(f => f != null)
+		.map(f => f!)
+		.reduce((prev: ShaderStore, [s, d]) => ({ ...prev, [s]: d }), {} as ShaderStore)
+}
+
+export async function loadLocalShaderAssets(size: readonly [number, number], shaders: readonly [string, string][]): Promise<ShaderStore> {
+	const results = await Promise.all(shaders.map(async ([shader, shaderBody]) => {
+		try {
+			return [shader, await createPatternShaderFromText(size, shaderBody)] as [string, PatternShader] | null
 		} catch (err) {
 			return null
 		}

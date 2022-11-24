@@ -43,15 +43,23 @@ export function renderSpiralShaderToCanvas(dom: HTMLCanvasElement, frame: number
 	dom.getContext("2d")?.drawImage(src, 0, 0, dom.width, dom.height)
 }
 
-export async function createPatternShader([width, height]: readonly [number, number], vertexHref: string, fragmentHref: string): Promise<PatternShader> {
+export async function createPatternShader([width, height]: readonly [number, number], fragmentHref: string): Promise<PatternShader> {
+	const dom = document.createElement("canvas")
+	dom.width = width
+	dom.height = height
+
+	const fragment = await fetch(fragmentHref).then(r => { return r.text() })
+
+	return await createPatternShaderFromText([width, height], fragment)
+}
+
+export async function createPatternShaderFromText([width, height]: readonly [number, number], fragment: string): Promise<PatternShader> {
 	const dom = document.createElement("canvas")
 	dom.width = width
 	dom.height = height
 
 	const webgl = new WebGLRef(dom)
-	const $vertex = fetch(vertexHref).then(r => { return r.text() })
-	const $fragment = fetch(fragmentHref).then(r => { return r.text() })
-	const [vertex, fragment] = await Promise.all([$vertex, $fragment])
+	const vertex = await fetch("shaders/spiral.vs").then(r => { return r.text() })
 
 	const buffer = webgl.createBuffer()
 	if (!buffer.ok()) {

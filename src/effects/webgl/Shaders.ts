@@ -260,6 +260,10 @@ export const AvailableShaders = [
         "name": "Spiral (Squares)"
     },
     {
+        "key": "full-thick",
+        "name": "Spiral (Thick)"
+    },
+    {
         "key": "full-twisted-alt",
         "name": "Spiral (Twisted, Alt)"
     },

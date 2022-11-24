@@ -526,6 +526,44 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 				</Accordion>
 			)
 
+		case "fade-in":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Fade In</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField type="number" fullWidth label="Length" value={value.length ?? 60} onChange={length => onChange({ ...value, length: parseInt(length.target.value, 0) })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
+		case "fade-out":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Fade In</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField type="number" fullWidth label="Length" value={value.length ?? 60} onChange={length => onChange({ ...value, length: parseInt(length.target.value, 0) })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
 		case "flash":
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
@@ -637,6 +675,22 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 										<ColorEditor label="Dim" value={value.colors.dim ?? [0, 0, 0, 1]} onChange={dim => onChange({ ...value, colors: { ...value.colors, dim } })} />
 									</Grid>
 								</Grid>
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
+		case "local-pattern":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Pattern (GLSL)</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField label="Shader GLSL" value={value.patternBody} onChange={pattern => onChange({ ...value, patternBody: pattern.target.value })} fullWidth multiline />
 							</Grid>
 						</Grid>
 					</AccordionDetails>

@@ -127,6 +127,40 @@ export async function renderFlashToCanvas(dom: HTMLCanvasElement, frame: number,
 	}
 }
 
+export type FadeInProps = {
+	readonly length?: number
+	readonly style?: {
+		readonly alpha?: number
+	}
+}
+
+export async function renderFadeInToCanvas(dom: HTMLCanvasElement, frame: number, opts: FadeInProps, render: (dom: HTMLCanvasElement) => Promise<void>) {
+	const length = opts.length ?? 60
+	let alpha = 1.0
+	if (frame < length) {
+		alpha = frame / length
+	}
+
+	await opacity(dom, alpha, render)
+}
+
+export type FadeOutProps = {
+	readonly length?: number
+	readonly style?: {
+		readonly alpha?: number
+	}
+}
+
+export async function renderFadeOutToCanvas(dom: HTMLCanvasElement, frame: number, opts: FadeInProps, render: (dom: HTMLCanvasElement) => Promise<void>) {
+	const length = opts.length ?? 60
+	let alpha = 0.0
+	if (frame < length) {
+		alpha = 1.0 - (frame / length)
+	}
+
+	await opacity(dom, alpha, render)
+}
+
 export type FlashBoxProps = {
 	readonly style?: {
 		readonly backgroundColor?: Color
