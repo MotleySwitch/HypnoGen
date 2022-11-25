@@ -1,4 +1,4 @@
-import { Grid, makeStyles, Slider, TextField, Typography } from "@material-ui/core"
+import { Grid, Slider, styled, TextField, Typography } from "@mui/material"
 import React from "react"
 import type { Assets } from "src/effects/webgl"
 import type { RenderDef } from "src/effects/webgl/webgl.react"
@@ -11,16 +11,16 @@ export type RenderDefEditorProps = {
 	readonly onChange: (def: RenderDef) => void
 }
 
-const usePreviewStyles = makeStyles({
-	root: {
+const PreviewStyles = styled("div")({
+	"& .root": {
 		marginRight: "1em"
 	},
-	canvas: {
+	"& .canvas": {
 		width: "320px",
 		verticalAlign: "top",
 		cursor: "pointer"
 	},
-	background: {
+	"& .background": {
 		backgroundImage: "linear-gradient(45deg, #808080 25%, transparent 25%), linear-gradient(-45deg, #808080 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #808080 75%), linear-gradient(-45deg, transparent 75%, #808080 75%)",
 		backgroundSize: "20px 20px",
 		backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px"
@@ -28,11 +28,10 @@ const usePreviewStyles = makeStyles({
 })
 
 export const RenderDefEditor = ({ assets, value, onChange }: RenderDefEditorProps) => {
-	const { root, canvas, background } = usePreviewStyles()
 	const [enablePreviewTimeSelector, setEnablePreviewTimeSelector] = React.useState(false)
 	const [targetFrame, setTargetFrame] = React.useState(0)
 	return (
-		<>
+		<PreviewStyles>
 			<Typography variant="h1" paragraph>Spiral Editor</Typography>
 
 			<Typography variant="h2" paragraph>Pattern</Typography>
@@ -43,14 +42,14 @@ export const RenderDefEditor = ({ assets, value, onChange }: RenderDefEditorProp
 					<div style={{ padding: "1em" }} />
 					<Typography variant="h2" paragraph>Preview</Typography>
 
-					<div className={root}>
+					<div className="root">
 						{!enablePreviewTimeSelector
-							? <div className={background}>
-								<SpiralViewer className={canvas} def={value} assets={assets} onClick={() => setEnablePreviewTimeSelector(true)} />
+							? <div className="background">
+								<SpiralViewer className="canvas" def={value} assets={assets} onClick={() => setEnablePreviewTimeSelector(true)} />
 							</div>
 							: <div>
-								<div className={background}>
-									<SpiralFrameViewer className={canvas} def={value} assets={assets} frame={targetFrame} onClick={() => setEnablePreviewTimeSelector(false)} />
+								<div className="background">
+									<SpiralFrameViewer className="canvas" def={value} assets={assets} frame={targetFrame} onClick={() => setEnablePreviewTimeSelector(false)} />
 								</div>
 
 								<div>
@@ -104,6 +103,6 @@ export const RenderDefEditor = ({ assets, value, onChange }: RenderDefEditorProp
 					</Grid>
 				</Grid>
 			</Grid>
-		</>
+		</PreviewStyles>
 	)
 }

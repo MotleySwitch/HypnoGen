@@ -1,7 +1,7 @@
 import React from "react"
 
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Grid, IconButton, LinearProgress, Menu, MenuItem, Popover, Select, Slider, TextField, TextFieldProps, Typography } from "@material-ui/core"
-import { ExpandMore, FileCopy, Delete, ArrowUpward, ArrowDownward } from "@material-ui/icons"
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Grid, IconButton, LinearProgress, Menu, MenuItem, Popover, Select, Slider, TextField, TextFieldProps, Typography } from "@mui/material"
+import { ExpandMore, FileCopy, Delete, ArrowUpward, ArrowDownward } from "@mui/icons-material"
 
 import { SketchPicker } from "react-color"
 

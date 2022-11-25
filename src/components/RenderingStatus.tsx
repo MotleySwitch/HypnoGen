@@ -1,4 +1,4 @@
-import { CircularProgress, Dialog, DialogContent } from "@material-ui/core"
+import { CircularProgress, Dialog, DialogContent } from "@mui/material"
 import React from "react"
 import type { RenderingStatus } from "../effects/webgl"
 
