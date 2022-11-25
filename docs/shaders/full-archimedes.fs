@@ -12,6 +12,6 @@ void main(void) {
     
     float d = 100.0;
     float v = r - d * theta;
-    float c = v / d;
+    float c = v / d - floor(v / d);
     gl_FragColor =  vec4(c) * fgColor;
 }
