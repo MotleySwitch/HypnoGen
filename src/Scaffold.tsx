@@ -5,6 +5,7 @@ import { SearchProvider } from "./util/useQuery"
 import { SemaphoreProvider } from "./util/useSemaphore"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
+import { CopyPasteProvider } from "./util/useCopyPaste"
 
 const theme: ThemeOptions = {
 	components: {
@@ -42,17 +43,19 @@ const theme: ThemeOptions = {
 
 export default function Scaffold({ children }: { readonly children: React.ReactChild }) {
 	return (
-		<DndProvider backend={HTML5Backend}>
-			<SearchProvider>
-				<SemaphoreProvider>
-					<ThemeProvider theme={createTheme(theme)}>
-						<CssBaseline />
-						<React.Suspense fallback={<Typography variant="h1" align="center">...</Typography>}>
-							{children}
-						</React.Suspense>
-					</ThemeProvider >
-				</SemaphoreProvider>
-			</SearchProvider>
-		</DndProvider>
+		<CopyPasteProvider>
+			<DndProvider backend={HTML5Backend}>
+				<SearchProvider>
+					<SemaphoreProvider>
+						<ThemeProvider theme={createTheme(theme)}>
+							<CssBaseline />
+							<React.Suspense fallback={<Typography variant="h1" align="center">...</Typography>}>
+								{children}
+							</React.Suspense>
+						</ThemeProvider >
+					</SemaphoreProvider>
+				</SearchProvider>
+			</DndProvider>
+		</CopyPasteProvider>
 	)
 }

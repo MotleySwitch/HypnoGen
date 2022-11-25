@@ -1,7 +1,7 @@
 import React from "react"
 
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Grid, IconButton, LinearProgress, Menu, MenuItem, Popover, Select, Slider, TextField, TextFieldProps, Typography } from "@mui/material"
-import { ExpandMore, FileCopy, Delete, ArrowUpward, ArrowDownward } from "@mui/icons-material"
+import { ExpandMore, FileCopy, Delete, ArrowUpward, ArrowDownward, ContentPasteGo, AddCircle } from "@mui/icons-material"
 
 import { SketchPicker } from "react-color"
 
@@ -10,6 +10,7 @@ import { Color, toCssStringRGB, toCssStringRGBA } from "../effects/webgl/Color"
 import { AvailableShaders } from "../effects/webgl/Shaders"
 import type { TextAlign as FlashTextAlign, FlashTextStyle, TextStyle, SubliminalStyle } from "../effects/webgl/Text"
 import { PatternEditor } from "./PatternEditor"
+import { useCopyPaste } from "../util/useCopyPaste"
 
 export type SetEditorProps<Value, Props = undefined> = {
 	readonly label: string
@@ -31,6 +32,7 @@ export type MakeSetEditorArgs<Value, Key = string, Props = undefined> = {
 
 export const makeSetEditor = function <Value, Key = string, Props = undefined>(opts: MakeSetEditorArgs<Value, Key, Props>) {
 	return ({ props, label, value, onChange }: SetEditorProps<Value, Props>) => {
+		const [copy, setCopy] = useCopyPaste<Value>()
 		const [add, setAdd] = React.useState<HTMLButtonElement | null>(null)
 		return (
 			<>
@@ -48,7 +50,7 @@ export const makeSetEditor = function <Value, Key = string, Props = undefined>(o
 						{opts.edit(v, nv => onChange([...value.slice(0, i), nv, ...value.slice(i + 1)]), props)}
 					</Grid>
 					<Grid item style={{ width: "120px" }}>
-						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, i), v, v, ...value.slice(i + 1)])}>
+						<IconButton color="secondary" onClick={() => setCopy(v)}>
 							<FileCopy />
 						</IconButton>
 						<IconButton color="secondary" onClick={() => onChange([...value.slice(0, i), ...value.slice(i + 1)])}>
@@ -60,13 +62,29 @@ export const makeSetEditor = function <Value, Key = string, Props = undefined>(o
 				<Grid container spacing={3}>
 					<Grid item style={{ flexGrow: 1 }} />
 					<Grid item>
+						<IconButton disabled={copy == null} onClick={e => {
+							onChange([...value, copy!])
+							setCopy(null)
+						}}>
+							<ContentPasteGo />
+						</IconButton>
+						{opts.createOptions && <Menu open={add != null} anchorEl={add} onClose={() => setAdd(null)}>
+							{opts.createOptions.map((e, i) => <MenuItem key={i} onClick={() => {
+								onChange([...value, opts.create(e)])
+								setAdd(null)
+							}}>{opts.optionName(e)}</MenuItem>)}
+						</Menu>}
+					</Grid>
+					<Grid item>
 						<IconButton onClick={e => {
 							if (opts.createOptions) {
 								setAdd(e.currentTarget)
 							} else {
 								onChange([...value, opts.create()])
 							}
-						}}>+</IconButton>
+						}}>
+							<AddCircle />
+						</IconButton>
 						{opts.createOptions && <Menu open={add != null} anchorEl={add} onClose={() => setAdd(null)}>
 							{opts.createOptions.map((e, i) => <MenuItem key={i} onClick={() => {
 								onChange([...value, opts.create(e)])
@@ -188,6 +206,7 @@ export const TextAlignSelect = ({ label, value, onChange }: TextAlignSelectProps
 		</Select>
 	)
 }
+
 export type TextStyleEditorProps = {
 	readonly label: string
 	readonly value: TextStyle

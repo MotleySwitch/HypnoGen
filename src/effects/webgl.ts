@@ -34,7 +34,7 @@ export type DrawCommandType =
 
 export type DrawCommandDef = { readonly type: DrawCommandType; readonly name: string }
 
-export const AvailableDrawCommands: readonly DrawCommandDef[] = [
+export const AvailableDrawCommands: readonly DrawCommandDef[] = ([
 	{
 		"type": "change-speed",
 		"name": "Change Speed"
@@ -58,10 +58,6 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = [
 	{
 		"type": "fill",
 		"name": "Fill"
-	},
-	{
-		"type": "flash",
-		"name": "Flash"
 	},
 	{
 		"type": "flash",
@@ -123,7 +119,7 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = [
 		"type": "video",
 		"name": "Video"
 	}
-]
+] as DrawCommandDef[]).sort((a, b) => a.name > b.name ? 1 : -1)
 
 export type DrawCommand =
 	| { readonly type: "fill"; readonly color: Color }
