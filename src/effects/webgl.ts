@@ -35,28 +35,94 @@ export type DrawCommandType =
 export type DrawCommandDef = { readonly type: DrawCommandType; readonly name: string }
 
 export const AvailableDrawCommands: readonly DrawCommandDef[] = [
-	{ type: "fill", name: "Fill" },
-	{ type: "opacity", name: "Opacity" },
-	{ type: "frame-offset", name: "Frame Offset" },
-	{ type: "change-speed", name: "Change Speed" },
-	{ type: "hide-after", name: "Hide After" },
-	{ type: "show-after", name: "Show After" },
-	{ type: "rotate-by", name: "Rotate By" },
-	{ type: "rotating", name: "Rotating" },
-	{ type: "clip-circle", name: "Clip (Circle)" },
-	{ type: "clip-rect", name: "Clip (Rectangle)" },
-	{ type: "pattern", name: "Pattern" },
-	{ type: "local-pattern", name: "Pattern (GLSL)" },
-	{ type: "text", name: "Text" },
-	{ type: "flash", name: "Flash" },
-	{ type: "fade-in", name: "Fade In" },
-	{ type: "fade-out", name: "Fade Out" },
-	{ type: "flash", name: "Flash" },
-	{ type: "flash-fill", name: "Flash (Fill)" },
-	{ type: "flash-text", name: "Flash (Text)" },
-	{ type: "subliminal", name: "Subliminal" },
-	{ type: "image", name: "Image" },
-	{ type: "video", name: "Video" }
+	{
+		"type": "change-speed",
+		"name": "Change Speed"
+	},
+	{
+		"type": "clip-circle",
+		"name": "Clip (Circle)"
+	},
+	{
+		"type": "clip-rect",
+		"name": "Clip (Rectangle)"
+	},
+	{
+		"type": "fade-in",
+		"name": "Fade In"
+	},
+	{
+		"type": "fade-out",
+		"name": "Fade Out"
+	},
+	{
+		"type": "fill",
+		"name": "Fill"
+	},
+	{
+		"type": "flash",
+		"name": "Flash"
+	},
+	{
+		"type": "flash",
+		"name": "Flash"
+	},
+	{
+		"type": "flash-fill",
+		"name": "Flash (Fill)"
+	},
+	{
+		"type": "flash-text",
+		"name": "Flash (Text)"
+	},
+	{
+		"type": "frame-offset",
+		"name": "Frame Offset"
+	},
+	{
+		"type": "hide-after",
+		"name": "Hide After"
+	},
+	{
+		"type": "image",
+		"name": "Image"
+	},
+	{
+		"type": "opacity",
+		"name": "Opacity"
+	},
+	{
+		"type": "pattern",
+		"name": "Pattern"
+	},
+	{
+		"type": "local-pattern",
+		"name": "Pattern (GLSL)"
+	},
+	{
+		"type": "rotate-by",
+		"name": "Rotate By"
+	},
+	{
+		"type": "rotating",
+		"name": "Rotating"
+	},
+	{
+		"type": "show-after",
+		"name": "Show After"
+	},
+	{
+		"type": "subliminal",
+		"name": "Subliminal"
+	},
+	{
+		"type": "text",
+		"name": "Text"
+	},
+	{
+		"type": "video",
+		"name": "Video"
+	}
 ]
 
 export type DrawCommand =
@@ -93,6 +159,13 @@ export type DrawCommand =
 		readonly type: "local-pattern"
 		readonly patternKey: string
 		readonly patternBody: string
+		readonly colors: {
+			readonly fg?: Color
+			readonly bg?: Color
+			readonly dim?: Color
+			readonly pulse?: Color
+			readonly extra?: Color
+		}
 	}
 	| {
 		readonly type: "text"
@@ -167,25 +240,26 @@ export const DrawCommand = (value: string): DrawCommand => {
 		case "rotating": return { type: "rotating", speed: 6, children: [] }
 		case "clip-circle": return { type: "clip-circle", origin: [0, 0], radius: 1, children: [] }
 		case "clip-rect": return { type: "clip-rect", origin: [0, 0], size: [1, 1], children: [] }
-		case "pattern": return { type: "pattern", pattern: "full-inwards", colors: {} }
+		case "pattern": return { type: "pattern", pattern: "full-archimedes", colors: {} }
 		case "local-pattern": return {
 			type: "local-pattern",
 			patternKey: Math.random().toString(),
 			patternBody: `uniform float time;
 uniform vec2 resolution;
-uniform vec2 aspect;
+uniform vec4 fgColor;
 
 void main(void) {
-	vec2 uv = (gl_FragCoord.xy - resolution.xy * 0.5) / resolution.x;
-	vec3 col_v = vec3(
-		(0.30 + 0.7*cos(-time * 30.4 + length(uv) * 40.0 + 0.00000000000 - atan(uv.x, uv.y))), 
-		(0.30 + 0.7*cos(-time * 14.5 + length(uv) * 40.0 + 4.18879020479 - atan(uv.x, uv.y))), 
-		(0.30 + 0.7*cos(-time * 20.0 + length(uv) * 40.0 + 2.09439510239 - atan(uv.x, uv.y)))
-	);
-
-	gl_FragColor = vec4(col_v, 1.0);
-}
-`
+	vec2 center = resolution.xy / 2.0;
+	vec2 dist = center - gl_FragCoord.xy;
+	float r = length(dist);
+	float theta = -time * 4.0 + atan(dist.y, dist.x) / (2.0*3.14);
+	
+	float d = 100.0;
+	float v = r - d * theta;
+	float c = v / d - floor(v / d);
+	gl_FragColor =  vec4(c) * fgColor;
+}`,
+			colors: {}
 		}
 		case "text": return { type: "text", value: "" }
 		case "fade-in": return { type: "fade-in", length: 60, children: [] }
@@ -299,7 +373,13 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 			} else {
 				return renderSpiralShaderToCanvas(dom, frame, {
 					shader,
-					fps: opts?.fps
+					fps: opts?.fps,
+					colors: {
+						bgColor: tree.colors.bg,
+						fgColor: tree.colors.fg,
+						dimColor: tree.colors.dim,
+						pulseColor: tree.colors.pulse
+					},
 				})
 			}
 		}

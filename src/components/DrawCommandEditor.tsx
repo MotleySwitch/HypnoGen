@@ -315,6 +315,7 @@ export type DrawCommandEditorProps = {
 
 export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandEditorProps) => {
 	const [open, setOpen] = React.useState(false)
+	const [selectedSpiral, setSelectedSpiral] = React.useState("")
 	switch (value.type) {
 		case "fill":
 			return (
@@ -690,7 +691,39 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 					<AccordionDetails>
 						<Grid container spacing={3}>
 							<Grid item xs={12}>
+								<Select fullWidth label="Shader" value={selectedSpiral} onChange={async pattern => {
+									await fetch(`shaders/${[pattern.target.value]}.fs`)
+										.then($fragment => $fragment.text())
+										.then(fragment => {
+											onChange({
+												...value,
+												patternBody: fragment
+											})
+										})
+									setSelectedSpiral(pattern.target.value as string)
+								}}>
+									{AvailableShaders.map(shader => <MenuItem key={shader.key} value={shader.key}>{shader.name}</MenuItem>)}
+								</Select>
+							</Grid>
+							<Grid item xs={12}>
 								<TextField label="Shader GLSL" value={value.patternBody} onChange={pattern => onChange({ ...value, patternBody: pattern.target.value })} fullWidth multiline />
+							</Grid>
+							<Grid item xs={12}>
+								<Typography variant="h4" paragraph>Properties</Typography>
+								<Grid container>
+									<Grid item xs={12} sm={6} md={3}>
+										<ColorEditor label="Background" value={value.colors.bg ?? [0, 0, 0, 0]} onChange={bg => onChange({ ...value, colors: { ...value.colors, bg } })} />
+									</Grid>
+									<Grid item xs={12} sm={6} md={3}>
+										<ColorEditor label="Foreground" value={value.colors.fg ?? [1, 1, 1, 1]} onChange={fg => onChange({ ...value, colors: { ...value.colors, fg } })} />
+									</Grid>
+									<Grid item xs={12} sm={6} md={3}>
+										<ColorEditor label="Pulse" value={value.colors.pulse ?? [178 / 255, 76 / 255, 229 / 255, 1.0]} onChange={pulse => onChange({ ...value, colors: { ...value.colors, pulse } })} />
+									</Grid>
+									<Grid item xs={12} sm={6} md={3}>
+										<ColorEditor label="Dim" value={value.colors.dim ?? [0, 0, 0, 1]} onChange={dim => onChange({ ...value, colors: { ...value.colors, dim } })} />
+									</Grid>
+								</Grid>
 							</Grid>
 						</Grid>
 					</AccordionDetails>

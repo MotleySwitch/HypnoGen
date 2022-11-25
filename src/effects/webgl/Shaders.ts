@@ -56,6 +56,10 @@ export const AvailableShaders = [
         "name": "Spiral (Bi-color, Pulse)"
     },
     {
+        "key": "full-archimedes",
+        "name": "Spiral (Archimedes)"
+    },
+    {
         "key": "full-bicolor",
         "name": "Spiral (Bi-color)"
     },
