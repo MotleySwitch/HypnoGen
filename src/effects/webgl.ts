@@ -297,6 +297,20 @@ async function forEachAsync<T>(items: readonly T[], lambda: (value: T) => Promis
 	}
 }
 
+function hash(string: string): string {
+	let hash = 0;
+	if (string.length == 0) {
+		return "";
+	} else {
+		for (let i = 0; i < string.length; i++) {
+			let ch = string.charCodeAt(i);
+			hash = ((hash << 5) - hash) + ch;
+			hash = hash & hash;
+		}
+	}
+	return btoa(hash.toString());
+}
+
 export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, frame: number, assets: Assets, opts?: { readonly fps?: number }): Promise<void> {
 	switch (tree.type) {
 		case "fill":
@@ -364,7 +378,7 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 			}
 
 		case "local-pattern": {
-			const shader = assets.shaders[tree.patternKey]
+			const shader = assets.shaders[hash(tree.patternBody)]
 			if (shader == null) {
 				return
 			} else {
@@ -476,7 +490,7 @@ export function extractUsedLocalShaders(commands: readonly DrawCommand[]): reado
 	return commands.reduce((prev: readonly [string, string][], curr: DrawCommand): readonly [string, string][] => {
 		switch (curr.type) {
 			case "local-pattern":
-				return [...prev, [curr.patternKey, curr.patternBody]]
+				return [...prev, [hash(curr.patternBody), curr.patternBody]]
 
 			default:
 				const $curr = (curr as { readonly children?: DrawCommand[] })
