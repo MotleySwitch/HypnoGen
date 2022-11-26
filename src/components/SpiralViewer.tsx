@@ -16,7 +16,7 @@ export const SpiralViewer = ({ disabled, className, def, assets, onClick }: Spir
 	useRenderToCanvas(canvasRef, { enable: !disabled, assets, def })
 
 	return (
-		<canvas className={className} width={def.resolution[0] > 0 ? def.resolution[0] : 32} height={def.resolution[1] > 0 ? def.resolution[1] : 32} ref={r => setCanvasRef(r)} onClick={onClick} />
+		<canvas className={className} width={def.resolution[0] > 0 ? def.resolution[0] : window.innerWidth} height={def.resolution[1] > 0 ? def.resolution[1] : window.innerHeight} ref={r => setCanvasRef(r)} onClick={onClick} />
 	)
 }
 
