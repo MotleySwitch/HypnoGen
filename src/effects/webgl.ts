@@ -598,8 +598,8 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 		for (let frame = 0; frame < totalFrames; ++frame) {
 			await defer(async () => {
 				const targetBuffer = document.createElement("canvas")
-				targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : 32
-				targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : 32
+				targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : window.innerWidth
+				targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : window.innerHeight
 
 				await render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
 				setRendering({ current: "rendering", progress: (frame / totalFrames) })

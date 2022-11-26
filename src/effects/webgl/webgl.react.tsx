@@ -1,6 +1,6 @@
 import React, { useEffect } from "react"
 import { useQueryJson, useQueryNumber } from "../../util/useQuery"
-import useRequestAnimationFrame, { useRequestAnimationFrameAsync } from "../../util/useRequestAnimationFrame"
+import { useRequestAnimationFrameAsync } from "../../util/useRequestAnimationFrame"
 import { Assets, DrawCommand, extractUsedImages, extractUsedLocalShaders, extractUsedShaders, extractUsedVideos, ImageStore, loadImageAssets, loadLocalShaderAssets, loadShaderAssets, loadVideoAssets, render, ShaderStore, VideoStore } from "../webgl"
 import { clear } from "./Draw"
 
@@ -117,6 +117,12 @@ export const useRenderFrameToCanvas = (target: HTMLCanvasElement | null, {
 }
 
 export function useAssets(def: RenderDef): Assets {
+	const size = React.useMemo(() => { 
+		return [
+			def.resolution[0] > 0 ? def.resolution[0] : window.innerWidth,
+			def.resolution[1] > 0 ? def.resolution[1] : window.innerHeight
+		] as readonly [number, number]
+	}, [def])
 	const shaderPaths = React.useMemo(() => extractUsedShaders(def.pattern), [def.pattern])
 	const localShaderDefs = React.useMemo(() => extractUsedLocalShaders(def.pattern), [def.pattern])
 	const imagePaths = React.useMemo(() => extractUsedImages(def.pattern), [def.pattern])
@@ -129,19 +135,19 @@ export function useAssets(def: RenderDef): Assets {
 
 	React.useEffect(() => {
 		let abort = false
-		loadShaderAssets(def.resolution, shaderPaths).then((result) => {
+		loadShaderAssets(size, shaderPaths).then((result) => {
 			if (!abort) { setRemoteShaders(result) }
 		})
 		return () => { abort = true }
-	}, [def.resolution, shaderPaths.join("|")])
+	}, [size, shaderPaths.join("|")])
 
 	React.useEffect(() => {
 		let abort = false
-		loadLocalShaderAssets(def.resolution, localShaderDefs).then((result) => {
+		loadLocalShaderAssets(size, localShaderDefs).then((result) => {
 			if (!abort) { setLocalShaders(result) }
 		})
 		return () => { abort = true }
-	}, [def.resolution, localShaderDefs.map(([k, v]) => k + "|" + v).join("|")])
+	}, [size, localShaderDefs.map(([k, v]) => k + "|" + v).join("|")])
 
 	React.useEffect(() => {
 		let abort = false
