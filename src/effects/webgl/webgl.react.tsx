@@ -123,7 +123,7 @@ export function useAssets(def: RenderDef): Assets {
 			def.resolution[0] > 0 ? def.resolution[0] : windowSize[0],
 			def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
 		] as readonly [number, number]
-	}, [def])
+	}, [def, windowSize])
 
 
 	const shaderPaths = React.useMemo(() => extractUsedShaders(def.pattern), [def.pattern])
