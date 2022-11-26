@@ -1,5 +1,6 @@
 
 import React from "react"
+import useWindowResolution from "../util/useWindowResolution"
 import type { Assets } from "../effects/webgl"
 import { RenderDef, useRenderFrameToCanvas, useRenderToCanvas } from "../effects/webgl/webgl.react"
 
@@ -12,13 +13,14 @@ export type SpiralViewerProps = {
 }
 
 export const SpiralViewer = ({ disabled, className, def, assets, onClick }: SpiralViewerProps) => {
+	const windowSize = useWindowResolution()
 	const sizedDef = React.useMemo(() => ({
 		...def,
 		resolution: [
-			def.resolution[0] > 0 ? def.resolution[0] : window.innerWidth,
-			def.resolution[1] > 0 ? def.resolution[1] : window.innerHeight
+			def.resolution[0] > 0 ? def.resolution[0] : windowSize[0],
+			def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
 		] as readonly [number, number]
-	}), [def])
+	}), [def, windowSize])
 
 	const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(null)
 	useRenderToCanvas(canvasRef, { enable: !disabled, assets, def: sizedDef })
@@ -39,12 +41,13 @@ export type SpiralFrameViewerProps = {
 
 export const SpiralFrameViewer = ({ className, frame, def, assets, onClick }: SpiralFrameViewerProps) => {
 	const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(null)
+	const windowSize = useWindowResolution()
 
 	const sizedDef = React.useMemo(() => ({
 		...def,
 		resolution: [
-			def.resolution[0] > 0 ? def.resolution[0] : window.innerWidth,
-			def.resolution[1] > 0 ? def.resolution[1] : window.innerHeight
+			def.resolution[0] > 0 ? def.resolution[0] : windowSize[0],
+			def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
 		] as readonly [number, number]
 	}), [def])
 

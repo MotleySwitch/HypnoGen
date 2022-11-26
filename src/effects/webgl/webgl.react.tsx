@@ -1,4 +1,5 @@
 import React, { useEffect } from "react"
+import useWindowResolution from "../../util/useWindowResolution"
 import { useQueryJson, useQueryNumber } from "../../util/useQuery"
 import { useRequestAnimationFrameAsync } from "../../util/useRequestAnimationFrame"
 import { Assets, DrawCommand, extractUsedImages, extractUsedLocalShaders, extractUsedShaders, extractUsedVideos, ImageStore, loadImageAssets, loadLocalShaderAssets, loadShaderAssets, loadVideoAssets, render, ShaderStore, VideoStore } from "../webgl"
@@ -90,7 +91,6 @@ export const useRenderFrameToCanvas = (target: HTMLCanvasElement | null, {
 	readonly def: RenderDef
 	readonly assets: Assets
 }) => {
-	const buffer = React.useRef<HTMLCanvasElement>()
 	useEffect(() => {
 		if (!target) {
 			return
@@ -117,12 +117,15 @@ export const useRenderFrameToCanvas = (target: HTMLCanvasElement | null, {
 }
 
 export function useAssets(def: RenderDef): Assets {
+	const windowSize = useWindowResolution()
 	const size = React.useMemo(() => { 
 		return [
-			def.resolution[0] > 0 ? def.resolution[0] : window.innerWidth,
-			def.resolution[1] > 0 ? def.resolution[1] : window.innerHeight
+			def.resolution[0] > 0 ? def.resolution[0] : windowSize[0],
+			def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
 		] as readonly [number, number]
 	}, [def])
+
+
 	const shaderPaths = React.useMemo(() => extractUsedShaders(def.pattern), [def.pattern])
 	const localShaderDefs = React.useMemo(() => extractUsedLocalShaders(def.pattern), [def.pattern])
 	const imagePaths = React.useMemo(() => extractUsedImages(def.pattern), [def.pattern])

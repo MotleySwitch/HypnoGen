@@ -1,5 +1,6 @@
 import GIF from "gif.js"
 import React from "react"
+import useWindowResolution from "../util/useWindowResolution"
 import defer from "../util/defer"
 import type { Color } from "./webgl/Color"
 import { clear, clipCircle, clipRect, fill, opacity, renderFadeInToCanvas, renderFadeOutToCanvas, renderFlashFillToCanvas, renderFlashToCanvas, rotate } from "./webgl/Draw"
@@ -588,6 +589,7 @@ export type RenderingStatus = { readonly current: "no" } | {
 }
 
 export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [RenderingStatus, () => void] {
+	const windowSize = useWindowResolution()
 	const [rendering, setRendering] = React.useState<RenderingStatus>({ current: "no" })
 
 	return [rendering, async () => {
@@ -598,8 +600,8 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 		for (let frame = 0; frame < totalFrames; ++frame) {
 			await defer(async () => {
 				const targetBuffer = document.createElement("canvas")
-				targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : window.innerWidth
-				targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : window.innerHeight
+				targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : windowSize[0]
+				targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
 
 				await render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
 				setRendering({ current: "rendering", progress: (frame / totalFrames) })
