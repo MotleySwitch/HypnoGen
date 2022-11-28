@@ -15,10 +15,16 @@ export type RenderDef = {
 
 export const useRenderDef = (): readonly [RenderDef, (def: RenderDef) => void] => {
 	const [pattern, setPattern] = useQueryJson<readonly DrawCommand[]>("pattern", [])
-	const [speed, setSpeed] = useQueryNumber("speed", 1 as number)
-	const [fps, setFps] = useQueryNumber("fps", 60 as number)
-	const [totalFrames, setTotalFrames] = useQueryNumber("total-frames", fps)
+	const [speed, setSpeed] = useQueryNumber<number>("speed", 1)
+	const [fps, setFps] = useQueryNumber<number>("fps", 60)
+	const [totalFrames, setTotalFrames] = useQueryNumber<number>("total-frames", fps)
 	const [resolution, setResolution] = useQueryJson<readonly [number, number]>("screen", [1280, 720])
+
+	//const [pattern, setPattern] = React.useState<readonly DrawCommand[]>([])
+	//const [speed, setSpeed] = React.useState<number>(1)
+	//const [fps, setFps] = React.useState<number>(60)
+	//const [totalFrames, setTotalFrames] = React.useState<number>(fps)
+	//const [resolution, setResolution] = React.useState<readonly [number, number]>([1280, 720])
 
 	const def = React.useMemo(() => ({ pattern, speed, fps, totalFrames, resolution }), [pattern, speed, fps, totalFrames, resolution])
 
@@ -74,7 +80,7 @@ export const useRenderToCanvas = (target: HTMLCanvasElement | null, {
 		const actualFrame = (def.totalFrames > 0 ? frame.current % def.totalFrames : frame.current)
 		if (target != null && assets != null) {
 			await render(buffer.current, def.pattern, actualFrame, assets, { fps: def.fps })
-			
+
 			clear(target)
 			target.getContext("2d")?.drawImage(buffer.current, 0, 0)
 		}
@@ -96,7 +102,7 @@ export const useRenderFrameToCanvas = (target: HTMLCanvasElement | null, {
 			return
 		}
 
-		let abort = false 
+		let abort = false
 
 		const buffer = document.createElement("canvas")
 		buffer.width = target.width
@@ -118,7 +124,7 @@ export const useRenderFrameToCanvas = (target: HTMLCanvasElement | null, {
 
 export function useAssets(def: RenderDef): Assets {
 	const windowSize = useWindowResolution()
-	const size = React.useMemo(() => { 
+	const size = React.useMemo(() => {
 		return [
 			def.resolution[0] > 0 ? def.resolution[0] : windowSize[0],
 			def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]

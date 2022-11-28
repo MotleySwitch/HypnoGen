@@ -11,6 +11,7 @@ import { AvailableShaders } from "../effects/webgl/Shaders"
 import type { TextAlign as FlashTextAlign, FlashTextStyle, TextStyle, SubliminalStyle } from "../effects/webgl/Text"
 import { PatternEditor } from "./PatternEditor"
 import { useCopyPaste } from "../util/useCopyPaste"
+import FileUploadButton from "../util/FileUploadButton"
 
 export type SetEditorProps<Value, Props = undefined> = {
 	readonly label: string
@@ -778,8 +779,16 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 					</AccordionSummary>
 					<AccordionDetails>
 						<Grid container spacing={3}>
-							<Grid item xs={12}>
-								<BlurTextField fullWidth label="Href" value={value.image ?? ""} onChange={e => onChange({ ...value, image: e.target.value })} />
+							{value.image && <Grid item>
+								<img src={value.image} width={64} />
+							</Grid>}
+							<Grid item>
+								<FileUploadButton accept="image/*" onUpload={e => onChange({ ...value, image: e })} />
+							</Grid>
+							<Grid item flexGrow={1}>
+								{!value.image.startsWith("data:")
+									? <BlurTextField fullWidth label="Href" value={value.image ?? ""} onChange={e => onChange({ ...value, image: e.target.value })} />
+									: <Button color="secondary" onClick={() => onChange({ ...value, image: "" })}>Clear</Button>}
 							</Grid>
 						</Grid>
 					</AccordionDetails>
@@ -795,8 +804,16 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 					</AccordionSummary>
 					<AccordionDetails>
 						<Grid container spacing={3}>
-							<Grid item xs={12}>
-								<BlurTextField fullWidth label="Href" value={value.video ?? ""} onChange={e => onChange({ ...value, video: e.target.value })} />
+							{value.video && <Grid item>
+								<video src={value.video} width={64} />
+							</Grid>}
+							<Grid item flexGrow={1}>
+								{!value.video.startsWith("data:")
+									? <BlurTextField fullWidth label="Href" value={value.video ?? ""} onChange={e => onChange({ ...value, video: e.target.value })} />
+									: <Button color="secondary" onClick={() => onChange({ ...value, video: "" })}>Clear</Button>}
+							</Grid>
+							<Grid item>
+								<FileUploadButton accept="video/*" onUpload={e => onChange({ ...value, video: e })} />
 							</Grid>
 							<Grid item xs={12}>
 								{videoElement
@@ -819,7 +836,9 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 const BlurTextField = (props: TextFieldProps) => {
 	const [value, setValue] = React.useState(props.value ?? props.defaultValue)
 	React.useEffect(() => {
-		if (props.value != null) { setValue(value) }
+		if (props.value != null) {
+			setValue(value)
+		}
 	}, [props.value])
 	React.useEffect(() => {
 		if (props.defaultValue != null) { setValue(value) }

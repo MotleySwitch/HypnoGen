@@ -11,8 +11,21 @@ const SearchContext = React.createContext({
 
 export const SearchProvider = ({ children }: { readonly children: React.ReactChild }) => {
 	const [search, setSearch] = React.useState("")
+	const [hideUrl, setHideUrl] = React.useState(false)
 	React.useEffect(() => { setSearch(window.location.search) }, [])
-	React.useEffect(() => { history.pushState(null, "", search) }, [search])
+	React.useEffect(() => {
+		if (search.length < 2048) {
+			history.pushState(null, "", search)
+		} else if (!hideUrl) {
+			setHideUrl(true)
+		}
+	}, [search])
+
+	React.useEffect(() => {
+		if (hideUrl) {
+			history.pushState(null, "", "?")
+		}
+	}, [hideUrl])
 
 	return (
 		<SearchContext.Provider value={{ search, setSearch }}>
