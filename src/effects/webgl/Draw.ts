@@ -81,9 +81,14 @@ export function clear(dom: HTMLCanvasElement) {
 export async function opacity(dom: HTMLCanvasElement, opacity: number, render: (dom: HTMLCanvasElement) => Promise<void>) {
 	const context = dom.getContext("2d")!
 
+	const src = document.createElement("canvas")
+	src.width = dom.width
+	src.height = dom.height
+	await render(src)
+
 	context.save()
 	context.globalAlpha = context.globalAlpha * opacity
-	await render(dom)
+	context.drawImage(src, 0, 0)
 	context.restore()
 }
 
@@ -96,34 +101,29 @@ export type FlashProps = {
 
 export async function renderFlashToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashProps, render: (dom: HTMLCanvasElement) => Promise<void>) {
 	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
+
+	const hiddenStart = 0
+	const hiddenEnd = hiddenStart + stageLengths[0] - 1
+
+	const fadeInStart = hiddenEnd + 1
+	const fadeInEnd = fadeInStart + stageLengths[1] - 1
+
+	const visibleStart = fadeInEnd + 1
+	const visibleEnd = visibleStart + stageLengths[2] - 1
+
+	const fadeOutStart = visibleEnd + 1
+	const fadeOutEnd = fadeOutStart + stageLengths[3] - 1
+
 	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
 	const framePosition = frame % totalFramesLength
 
-	const target = document.createElement("canvas")
-	target.width = dom.width
-	target.height = dom.height
-	await render(target)
-
-	const context = dom.getContext("2d")!
-	if (framePosition < stageLengths[0]) {
-	} else if (stageLengths[0] > 0 && framePosition < stageLengths[0] + stageLengths[1]) {
-		context.save()
-		context.globalAlpha = (opts.style?.alpha ?? 1) * (framePosition - stageLengths[1]) / stageLengths[1]
-		context.drawImage(target, 0, 0, target.width, target.height)
-		context.restore()
-	} else if (stageLengths[1] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
-		context.save()
-		context.globalAlpha = (opts.style?.alpha ?? 1)
-		context.drawImage(target, 0, 0, target.width, target.height)
-		context.restore()
-	} else if (stageLengths[2] > 0 && framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
-		const pos = framePosition - (stageLengths[0] + stageLengths[1] + + stageLengths[2])
-		context.save()
-		context.globalAlpha = (opts.style?.alpha ?? 1) * (stageLengths[3] - pos) / stageLengths[3]
-		context.drawImage(target, 0, 0, target.width, target.height)
-		context.restore()
-	} else {
-
+	if (framePosition <= hiddenEnd) {
+	} else if (framePosition <= fadeInEnd) {
+		await renderFadeInToCanvas(dom, framePosition - fadeInStart, { length: stageLengths[1] }, render)
+	} else if (framePosition <= visibleEnd) {
+		await render(dom)
+	} else if (framePosition <= fadeOutEnd) {
+		await renderFadeOutToCanvas(dom, framePosition - fadeOutStart, { length: stageLengths[3] }, render)
 	}
 }
 
@@ -172,4 +172,18 @@ export function renderFlashFillToCanvas(dom: HTMLCanvasElement, frame: number, o
 	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, (async dom => {
 		fill(dom, opts.style?.backgroundColor ?? [1, 1, 1, 1])
 	}))
+}
+
+export type SwitchProps = {
+	readonly stepLength: number
+	readonly steps: readonly ((dom: HTMLCanvasElement) => Promise<void>)[]
+}
+
+export async function renderSwitchToCanvas(dom: HTMLCanvasElement, frame: number, opts: SwitchProps): Promise<void> {
+	if (opts.steps.length > 0 && opts.stepLength > 0) {
+		const index = Math.floor(frame / opts.stepLength) % opts.steps.length
+		const render = opts.steps[index]
+
+		await render(dom)
+	}
 }

@@ -1,6 +1,6 @@
 import random, { hash } from "../../util/random"
 import { Color, toCssStringRGB } from "./Color"
-import { renderFlashToCanvas } from "./Draw"
+import { renderFlashToCanvas, renderSwitchToCanvas } from "./Draw"
 
 export type TextAlign = ("center" | "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right")
 
@@ -117,20 +117,22 @@ export function renderSubliminalToCanvas(dom: HTMLCanvasElement, frame: number, 
 
 	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
 	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
-	const index = (frame / totalFramesLength) | 0
-	const h = hash(opts.text.reduce((p, c) => `${p}:${c}`, ""))
-	const text = opts.text[((frame / totalFramesLength) | 0) % opts.text.length]
-	const [offsetX, offsetY] = [(random(h, index * 2) * 2 - 1), (random(h, index * 2 + 1) * 2 - 1)]
+	const h = hash(stageLengths.reduce((p, c) => p.toString() + ":" + c.toString(), "") + opts.text.reduce((p, c) => `${p}:${c}`, ""))
+	const commands = opts.text.map((value, index) => {
+		const [offsetX, offsetY] = [(random(h, index * 2) * 2 - 1), (random(h, index * 2 + 1) * 2 - 1)]
+		const style: TextStyle = {
+			...(opts.style ?? {}),
+			align: "center",
+			offsetX,
+			offsetY
+		}
+		return async (dom: HTMLCanvasElement) => renderTextToCanvas(dom, { value, style })
+	})
 
 	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, async dom => {
-		renderTextToCanvas(dom, {
-			value: text,
-			style: {
-				...(opts.style ?? {}),
-				align: "center",
-				offsetX,
-				offsetY
-			}
+		await renderSwitchToCanvas(dom, frame, {
+			stepLength: totalFramesLength,
+			steps: commands
 		})
 	})
 }
@@ -153,22 +155,24 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
 	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
 	const align = opts.style?.align != null ? opts.style.align[((frame / totalFramesLength) | 0) % opts.style.align.length ?? 1] : "center"
-	const text = opts.text[((frame / totalFramesLength) | 0) % opts.text.length]
+	const style = {
+		lineWidth: opts.style?.lineWidth,
+		...(opts.style?.fillColor != null ? { fillColor: opts.style.fillColor } : {}),
+		...(opts.style?.strokeColor != null ? { strokeColor: opts.style.strokeColor } : {}),
+		bold: opts.style?.bold,
+		size: opts.style?.size ?? 1,
+		align: align,
+		fonts: opts.style?.fonts,
+		offsetX: opts.style?.offsetX,
+		offsetY: opts.style?.offsetY
+	}
+
+	const commands = opts.text.map(value => async (dom: HTMLCanvasElement) => renderTextToCanvas(dom, { value, style }))
 
 	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, async dom => {
-		renderTextToCanvas(dom, {
-			value: text,
-			style: {
-				lineWidth: opts.style?.lineWidth,
-				...(opts.style?.fillColor != null ? { fillColor: opts.style.fillColor } : {}),
-				...(opts.style?.strokeColor != null ? { strokeColor: opts.style.strokeColor } : {}),
-				bold: opts.style?.bold,
-				size: opts.style?.size ?? 1,
-				align: align,
-				fonts: opts.style?.fonts,
-				offsetX: opts.style?.offsetX,
-				offsetY: opts.style?.offsetY
-			}
+		await renderSwitchToCanvas(dom, frame, {
+			stepLength: totalFramesLength,
+			steps: commands
 		})
 	})
 }

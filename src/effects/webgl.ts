@@ -3,7 +3,7 @@ import React from "react"
 import useWindowResolution from "../util/useWindowResolution"
 import defer from "../util/defer"
 import type { Color } from "./webgl/Color"
-import { clear, clipCircle, clipRect, fill, opacity, renderFadeInToCanvas, renderFadeOutToCanvas, renderFlashFillToCanvas, renderFlashToCanvas, rotate } from "./webgl/Draw"
+import { clear, clipCircle, clipRect, fill, opacity, renderFadeInToCanvas, renderFadeOutToCanvas, renderFlashFillToCanvas, renderFlashToCanvas, renderSwitchToCanvas, rotate } from "./webgl/Draw"
 import { loadImage, renderImageToCanvas } from "./webgl/Image"
 import { createPatternShader, createPatternShaderFromText, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
 import { TextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle, SubliminalStyle } from "./webgl/Text"
@@ -113,6 +113,10 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = ([
 		"name": "Subliminal"
 	},
 	{
+		"type": "switch",
+		"name": "Switch"
+	},
+	{
 		"type": "text",
 		"name": "Text"
 	},
@@ -213,6 +217,11 @@ export type DrawCommand =
 		readonly style?: SubliminalStyle
 	}
 	| {
+		readonly type: "switch"
+		readonly stepLength?: number
+		readonly children: readonly DrawCommand[]
+	}
+	| {
 		readonly type: "flash-fill"
 		readonly color: Color
 		readonly stages?: readonly [number, number, number, number]
@@ -264,6 +273,7 @@ void main(void) {
 		case "flash": return { type: "flash", stages: [15, 15, 15, 15], children: [] }
 		case "flash-text": return { type: "flash-text", text: [] }
 		case "subliminal": return { type: "subliminal", text: [] }
+		case "switch": return { type: "switch", stepLength: 60, children: [] }
 		case "flash-fill": return { type: "flash-fill", color: [1, 1, 1, 1] }
 		case "change-speed": return { type: "change-speed", factor: 1, children: [] }
 		case "image": return { type: "image", image: "./assets/eyes.png" }
@@ -408,17 +418,20 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 				style: tree.style
 			})
 
+		case "switch":
+			return await renderSwitchToCanvas(dom, frame, {
+				stepLength: tree.stepLength ?? 60,
+				steps: tree.children.map(child => async (dom: HTMLCanvasElement) => renderTree(dom, child, frame, assets, opts))
+			})
+
 		case "fade-in":
-			await renderFadeInToCanvas(dom, frame, { length: tree.length }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
-			return
+			return await renderFadeInToCanvas(dom, frame, { length: tree.length }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
 
 		case "fade-out":
-			await renderFadeOutToCanvas(dom, frame, { length: tree.length }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
-			return
+			return await renderFadeOutToCanvas(dom, frame, { length: tree.length }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
 
 		case "flash":
-			await renderFlashToCanvas(dom, frame, { stageLengths: tree.stages }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
-			return
+			return await renderFlashToCanvas(dom, frame, { stageLengths: tree.stages }, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
 
 		case "flash-text":
 			return renderFlashTextToCanvas(dom, frame, {

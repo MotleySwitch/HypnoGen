@@ -666,6 +666,27 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 				</Accordion>
 			)
 
+		case "switch":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Switch</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField
+									type="number" label="Step Length" fullWidth inputProps={{ min: 0, step: 1 }}
+									value={value.stepLength ?? 60} onChange={v => onChange({ ...value, stepLength: parseInt(v.target.value || "0", 0) })} />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
 		case "pattern":
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
