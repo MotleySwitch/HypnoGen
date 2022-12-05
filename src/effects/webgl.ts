@@ -263,7 +263,7 @@ float spiral(float time, vec2 uv) { return constrict(cos(time_pos(time) + uv_pos
 float dim(vec2 uv) { return smoothstep(0.075, 0.4, length(uv)); }
 
 void main(void) {
-       vec2 uv = 2.0 * ((gl_FragCoord.xy - resolution.xy * 0.5) / max(resolution.x, resolution.y));
+	vec2 uv = 2.0 * ((gl_FragCoord.xy - resolution.xy * 0.5) / max(resolution.x, resolution.y));
 
 	gl_FragColor =  spiral(time, uv) * dim(uv) * fgColor;
 }
