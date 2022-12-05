@@ -738,7 +738,7 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 										.then(fragment => {
 											onChange({
 												...value,
-												patternBody: fragment
+												pattern: fragment
 											})
 										})
 									setSelectedSpiral(pattern.target.value as string)
@@ -747,7 +747,7 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 								</Select>
 							</Grid>
 							<Grid item xs={12}>
-								<TextField label="Shader GLSL" value={value.patternBody} onChange={pattern => onChange({ ...value, patternBody: pattern.target.value })} fullWidth multiline />
+								<TextField label="Shader GLSL" value={value.pattern} onChange={pattern => onChange({ ...value, pattern: pattern.target.value })} fullWidth multiline />
 							</Grid>
 							<Grid item xs={12}>
 								<Typography variant="h4" paragraph>Properties</Typography>

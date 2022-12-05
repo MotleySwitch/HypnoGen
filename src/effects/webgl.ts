@@ -158,8 +158,7 @@ export type DrawCommand =
 	}
 	| {
 		readonly type: "local-pattern"
-		readonly patternKey: string
-		readonly patternBody: string
+		readonly pattern: string
 		readonly colors: {
 			readonly fg?: Color
 			readonly bg?: Color
@@ -249,22 +248,26 @@ export const DrawCommand = (value: string): DrawCommand => {
 		case "pattern": return { type: "pattern", pattern: "full-archimedes", colors: {} }
 		case "local-pattern": return {
 			type: "local-pattern",
-			patternKey: Math.random().toString(),
-			patternBody: `uniform float time;
+			pattern: `uniform float time;
 uniform vec2 resolution;
 uniform vec4 fgColor;
 
+const float PI = radians(180.0);
+const float TAU = PI * 2.0;
+
+float time_pos(float time) { return time * TAU; }
+float uv_pos(vec2 uv) { return 1.0 / pow(length(uv), 2.0); }
+float curve_pos(vec2 uv) { return 1.0 * atan(uv.y, uv.x); }
+float constrict(float value) { return max(0.0, value); }
+float spiral(float time, vec2 uv) { return constrict(cos(time_pos(time) + uv_pos(uv) + curve_pos(uv))); }
+float dim(vec2 uv) { return smoothstep(0.075, 0.4, length(uv)); }
+
 void main(void) {
-	vec2 center = resolution.xy / 2.0;
-	vec2 dist = center - gl_FragCoord.xy;
-	float r = length(dist);
-	float theta = -time * 4.0 + atan(dist.y, dist.x) / (2.0*3.14);
-	
-	float d = 100.0;
-	float v = r - d * theta;
-	float c = v / d - floor(v / d);
-	gl_FragColor =  vec4(c) * fgColor;
-}`,
+	vec2 uv = (gl_FragCoord.xy - resolution.xy * 0.5) / max(resolution.x, resolution.y);
+
+	gl_FragColor =  spiral(time, uv) * dim(uv) * fgColor;
+}}
+`,
 			colors: {}
 		}
 		case "text": return { type: "text", value: "" }
@@ -388,7 +391,7 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 			}
 
 		case "local-pattern": {
-			const shader = assets.shaders[hash(tree.patternBody)]
+			const shader = assets.shaders[hash(tree.pattern)]
 			if (shader == null) {
 				return
 			} else {
@@ -503,7 +506,7 @@ export function extractUsedLocalShaders(commands: readonly DrawCommand[]): reado
 	return commands.reduce((prev: readonly [string, string][], curr: DrawCommand): readonly [string, string][] => {
 		switch (curr.type) {
 			case "local-pattern":
-				return [...prev, [hash(curr.patternBody), curr.patternBody]]
+				return [...prev, [hash(curr.pattern), curr.pattern]]
 
 			default:
 				const $curr = (curr as { readonly children?: DrawCommand[] })
