@@ -1,5 +1,9 @@
 export const AvailableShaders = [
     {
+        "key": "pendulum-generic",
+        "name": "Pendulum (Generic)"
+    },
+    {
         "key": "pendulum-bicolor-pulse",
         "name": "Pendulum (Bi-color, Pulse)"
     },
@@ -50,6 +54,10 @@ export const AvailableShaders = [
     {
         "key": "pendulum-spiral",
         "name": "Pendulum (Spiral)"
+    },
+    {
+        "key": "full-generic",
+        "name": "Spiral (Generic)"
     },
     {
         "key": "full-bicolor-pulse",
