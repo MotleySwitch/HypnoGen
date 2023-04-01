@@ -1,5 +1,5 @@
 export type ShaderParams = {
-	readonly [key: string]: number | readonly [number, number] | readonly [number, number, number] | readonly [number, number, number, number]
+	readonly [key: string]: number | readonly [number, number] | readonly [number, number, number] | readonly [number, number, number, number] | WebGLTexture
 }
 
 export default class WebGLRef {
@@ -67,6 +67,10 @@ export default class WebGLRef {
 							this.gl.uniform4f(location, value[0], value[1], value[2], value[3])
 							break
 					}
+				} else if (value instanceof WebGLTexture)  {
+					this.gl.activeTexture(this.gl.TEXTURE0);
+					this.gl.bindTexture(this.gl.TEXTURE_2D, value);
+					this.gl.uniform1i(location, 0)
 				} else {
 					this.gl.uniform1f(location, value as number)
 				}

@@ -5,7 +5,7 @@ import defer from "../util/defer"
 import type { Color } from "./webgl/Color"
 import { clear, clipCircle, clipRect, fill, opacity, renderFadeInToCanvas, renderFadeOutToCanvas, renderFlashFillToCanvas, renderFlashToCanvas, renderSwitchToCanvas, rotate } from "./webgl/Draw"
 import { loadImage, renderImageToCanvas } from "./webgl/Image"
-import { createPatternShader, createPatternShaderFromText, PatternShader, renderSpiralShaderToCanvas } from "./webgl/Pattern"
+import { createPatternShader, createPatternShaderFromText, PatternShader, renderEffectShaderToCanvas, renderSpiralShaderToCanvas } from "./webgl/Pattern"
 import { TextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle, SubliminalStyle } from "./webgl/Text"
 import { loadVideo, renderVideoToCanvas } from "./webgl/Video"
 import type { RenderDef } from "./webgl/webgl.react"
@@ -97,6 +97,10 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = ([
 		"name": "Pattern (GLSL)"
 	},
 	{
+		"type": "effect",
+		"name": "Effect (GLSL)"
+	},
+	{
 		"type": "rotate-by",
 		"name": "Rotate By"
 	},
@@ -166,6 +170,11 @@ export type DrawCommand =
 			readonly pulse?: Color
 			readonly extra?: Color
 		}
+	}
+	| {
+		readonly type: "effect"
+		readonly shader: string
+		readonly children: readonly DrawCommand[]
 	}
 	| {
 		readonly type: "text"
@@ -269,6 +278,20 @@ void main(void) {
 }
 `,
 			colors: {}
+		}
+		case "effect": return {
+			type: "effect",
+			shader: `uniform float time;
+		uniform vec2 resolution;
+		uniform sampler2D texture;
+		
+		void main(void) {
+			vec2 uv = 2.0 * ((gl_FragCoord.xy - resolution.xy * 0.5) / max(resolution.x, resolution.y));
+			vec2 st = gl_FragCoord.xy / resolution.xy;
+		
+			gl_FragColor = length(uv) * texture2D(texture, st) * mod(time, 1.0);
+		}
+		`, children: []
 		}
 		case "text": return { type: "text", value: "" }
 		case "fade-in": return { type: "fade-in", length: 60, children: [] }
@@ -408,6 +431,18 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 			}
 		}
 
+		case "effect": {
+			const shader = assets.shaders[hash(tree.shader)]
+			if (shader == null) {
+				return
+			} else {
+				return renderEffectShaderToCanvas(dom, frame, {
+					shader,
+					fps: opts?.fps,
+				}, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
+			}
+		}
+
 		case "text":
 			return renderTextToCanvas(dom, {
 				value: tree.value,
@@ -507,6 +542,9 @@ export function extractUsedLocalShaders(commands: readonly DrawCommand[]): reado
 		switch (curr.type) {
 			case "local-pattern":
 				return [...prev, [hash(curr.pattern), curr.pattern]]
+				
+			case "effect":
+				return [...prev, [hash(curr.shader), curr.shader]]
 
 			default:
 				const $curr = (curr as { readonly children?: DrawCommand[] })

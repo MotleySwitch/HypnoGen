@@ -771,6 +771,25 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 				</Accordion>
 			)
 
+		case "effect":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Effect (GLSL)</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField label="Shader GLSL" value={value.shader} onChange={shader => onChange({ ...value, shader: shader.target.value })} fullWidth multiline />
+							</Grid>
+							<Grid item xs={12}>
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
 		case "image":
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
