@@ -1,4 +1,6 @@
 import GIF from "gif.js"
+import ffmpeg from 'fluent-ffmpeg'
+
 import React from "react"
 import useWindowResolution from "../util/useWindowResolution"
 import defer from "../util/defer"
@@ -542,7 +544,7 @@ export function extractUsedLocalShaders(commands: readonly DrawCommand[]): reado
 		switch (curr.type) {
 			case "local-pattern":
 				return [...prev, [hash(curr.pattern), curr.pattern]]
-				
+
 			case "effect":
 				return [...prev, [hash(curr.shader), curr.shader]]
 
@@ -663,24 +665,26 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 	return [rendering, async () => {
 		setRendering({ current: "rendering", progress: 0 })
 
-		const gif = new GIF({ quality: 5, repeat: 0 })
-		const totalFrames = def.totalFrames || def.fps
-		for (let frame = 0; frame < totalFrames; ++frame) {
-			await defer(async () => {
-				const targetBuffer = document.createElement("canvas")
-				targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : windowSize[0]
-				targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
+		const targetBuffer = document.createElement("canvas")
+		targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : windowSize[0]
+		targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
 
-				await render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
-				setRendering({ current: "rendering", progress: (frame / totalFrames) })
-				gif.addFrame(targetBuffer, { delay: 1000 / (def.speed * def.fps), copy: true })
+		const gif = new GIF({ workers: 8, quality: 10, repeat: 0 })
+		const totalFrames = def.totalFrames || def.fps
+
+		const frame_jump = def.fps
+		for (let frame_step = 0; frame_step < totalFrames; frame_step += frame_jump) {
+			await defer(async () => {
+				for (let frame = frame_step; frame < frame_step + frame_jump && frame < totalFrames; ++frame) {
+
+					await render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
+					gif.addFrame(targetBuffer, { delay: 1000 / (def.speed * def.fps), copy: true })
+				}
 			})
+			setRendering({ current: "rendering", progress: (frame_step / totalFrames) })
 		}
 		gif.on("progress", e => {
-			setRendering({
-				current: "exporting",
-				progress: e
-			})
+			setRendering({ current: "exporting", progress: e })
 		})
 		gif.on("finished", blob => {
 			window.open(URL.createObjectURL(blob))
@@ -689,3 +693,4 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 		gif.render()
 	}]
 }
+

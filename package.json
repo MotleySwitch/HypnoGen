@@ -8,12 +8,16 @@
     "test": "web-test-runner \"src/**/*.test.tsx\""
   },
   "dependencies": {
-    "@emotion/react": "^11.10.5",
-    "@emotion/styled": "^11.10.5",
+    "@emotion/react": "11.10.5",
+    "@emotion/styled": "11.10.5",
     "@mui/icons-material": "5.10.15",
     "@mui/material": "5.10.15",
+    "@types/fluent-ffmpeg": "^2.1.21",
     "@types/gif.js": "0.2.2",
-    "@types/react-color": "^3.0.6",
+    "@types/pngjs": "6.0.1",
+    "@types/react-color": "3.0.6",
+    "canvas": "^2.11.2",
+    "fluent-ffmpeg": "^2.1.2",
     "gif.js": "0.2.0",
     "react": "18.2.0",
     "react-color": "2.19.3",
@@ -34,7 +38,7 @@
     "regenerator-runtime": "0.13.11",
     "ts-loader": "9.4.1",
     "typescript": "4.9.3",
-    "webpack": "5.75.0",
+    "webpack": "5.81.0",
     "webpack-cli": "5.0.0",
     "webpack-dev-server": "4.11.1"
   }
