@@ -668,6 +668,7 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 		const targetBuffer = document.createElement("canvas")
 		targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : windowSize[0]
 		targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
+		targetBuffer.getContext("2d")!.getContextAttributes()!.willReadFrequently = true
 
 		const gif = new GIF({ workers: 8, quality: 10, repeat: 0 })
 		const totalFrames = def.totalFrames || def.fps
