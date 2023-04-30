@@ -27,6 +27,34 @@ export default function App() {
 		<SpiralViewerStyles>
 			<SpiralViewer disabled={openEditor || rendering.current !== "no"} className="page" def={def} assets={assets} onClick={() => setEditorOpen(true)} />
 			<Dialog open={openEditor} maxWidth="xl" fullWidth>
+				<DialogActions>
+					<Button component="a" download href={URL.createObjectURL(new Blob([JSON.stringify(def)], { type: "application/json" }))} color="primary">
+						Download JSON
+					</Button>
+					<Button color="secondary" component="label">
+						<input
+							type="file"
+							hidden
+							value=""
+							onChange={async e => {
+								if (e.target.files != null && e.target.files.length > 0) {
+									const json = new TextDecoder().decode(new Uint8Array(await e.target.files[0].arrayBuffer()));
+									try {
+										const def = JSON.parse(json);
+										if (def != null) {
+											setRenderDef(def)
+										}
+									} catch (e) {
+										alert("Upload failed")
+									}
+								} else {
+									alert("File not found?")
+								}
+							}}
+						/>
+						Upload
+					</Button>
+				</DialogActions>
 				<DialogContent>
 					<RenderDefEditor assets={assets} value={def} onChange={setRenderDef} />
 				</DialogContent>
