@@ -1,6 +1,3 @@
-import GIF from "gif.js"
-import ffmpeg from 'fluent-ffmpeg'
-
 import React from "react"
 import useWindowResolution from "../util/useWindowResolution"
 import defer from "../util/defer"
@@ -11,6 +8,8 @@ import { createPatternShader, createPatternShaderFromText, PatternShader, render
 import { TextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle, SubliminalStyle } from "./webgl/Text"
 import { loadVideo, renderVideoToCanvas } from "./webgl/Video"
 import type { RenderDef } from "./webgl/webgl.react"
+
+const GIF = require("gif.js.optimized")
 
 export type DrawCommandType =
 	| "fill"
@@ -546,7 +545,7 @@ export function extractUsedLocalShaders(commands: readonly DrawCommand[]): reado
 				return [...prev, [hash(curr.pattern), curr.pattern]]
 
 			case "effect":
-				return [...prev, [hash(curr.shader), curr.shader]]
+				return [...prev, [hash(curr.shader), curr.shader], ...extractUsedLocalShaders(curr.children)]
 
 			default:
 				const $curr = (curr as { readonly children?: DrawCommand[] })
@@ -668,7 +667,6 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 		const targetBuffer = document.createElement("canvas")
 		targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : windowSize[0]
 		targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
-		targetBuffer.getContext("2d")!.getContextAttributes()!.willReadFrequently = true
 
 		const gif = new GIF({ workers: 8, quality: 10, repeat: 0 })
 		const totalFrames = def.totalFrames || def.fps
@@ -684,10 +682,10 @@ export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [Render
 			})
 			setRendering({ current: "rendering", progress: (frame_step / totalFrames) })
 		}
-		gif.on("progress", e => {
+		gif.on("progress", (e: number) => {
 			setRendering({ current: "exporting", progress: e })
 		})
-		gif.on("finished", blob => {
+		gif.on("finished", (blob: Blob) => {
 			window.open(URL.createObjectURL(blob))
 			setRendering({ current: "no" })
 		})
