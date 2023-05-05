@@ -4,7 +4,7 @@ import { Button, Dialog, DialogActions, DialogContent, Grid } from "@mui/materia
 import { RenderDefEditor } from "./components/RenderDefEditor"
 import { RenderingSpinner } from "./components/RenderingStatus"
 import { SpiralViewer } from "./components/SpiralViewer"
-import { useRenderToGIF } from "./effects/webgl"
+import { useRenderVideo } from "./effects/webgl"
 import { useAssets, useRenderDef } from "./effects/webgl/webgl.react"
 import styled from "@emotion/styled"
 
@@ -22,10 +22,10 @@ export default function App() {
 	const [def, setRenderDef] = useRenderDef()
 	const assets = useAssets(def)
 
-	const [rendering, renderToGIF] = useRenderToGIF(def, assets)
+	const render = useRenderVideo(def, assets)
 	return (
 		<SpiralViewerStyles>
-			<SpiralViewer disabled={openEditor || rendering.current !== "no"} className="page" def={def} assets={assets} onClick={() => setEditorOpen(true)} />
+			<SpiralViewer disabled={openEditor || render.status.current !== "no"} className="page" def={def} assets={assets} onClick={() => setEditorOpen(true)} />
 			<Dialog open={openEditor} maxWidth="xl" fullWidth>
 				<DialogActions>
 					<Button component="a" download href={URL.createObjectURL(new Blob([JSON.stringify(def)], { type: "application/json" }))} color="primary">
@@ -60,13 +60,19 @@ export default function App() {
 				</DialogContent>
 				<DialogActions>
 					<Button color="secondary" onClick={() => setEditorOpen(false)}>Close</Button>
+
 					<Button color="primary" disabled={def.totalFrames <= 0} onClick={() => {
 						setEditorOpen(false)
-						renderToGIF()
-					}}>Render</Button>
+						render.export("GIF")
+					}}>Render (GIF)</Button>
+
+					<Button color="primary" disabled={!render.isReady || def.totalFrames <= 0} onClick={() => {
+						setEditorOpen(false)
+						render.export("MP4")
+					}}>Render (MP4)</Button>
 				</DialogActions>
 			</Dialog>
-			<RenderingSpinner status={rendering} />
+			<RenderingSpinner status={render.status} />
 		</SpiralViewerStyles>
 	)
 }

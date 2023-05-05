@@ -31,5 +31,11 @@ module.exports = {
     },
     plugins: [
         new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] })
-    ]
+    ],
+    devServer: {
+        headers: {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp"
+        }
+    }
 }

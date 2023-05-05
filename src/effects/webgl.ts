@@ -1,3 +1,5 @@
+import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg"
+
 import React from "react"
 import useWindowResolution from "../util/useWindowResolution"
 import defer from "../util/defer"
@@ -803,43 +805,78 @@ export async function loadVideoAssets(videos: readonly string[]): Promise<VideoS
 }
 
 export type RenderingStatus = { readonly current: "no" } | {
-	readonly current: "rendering" | "exporting"
+	readonly current: "rendering" | "exporting" | "converting"
 	readonly progress: number
 }
 
-export function useRenderToGIF(def: RenderDef, assets: Assets): readonly [RenderingStatus, () => void] {
+export function useRenderVideo(def: RenderDef, assets: Assets): {
+	readonly status: RenderingStatus,
+	readonly export: (format: "GIF" | "MP4") => void,
+	readonly isReady: boolean
+} {
 	const windowSize = useWindowResolution()
 	const [rendering, setRendering] = React.useState<RenderingStatus>({ current: "no" })
 
-	return [rendering, async () => {
-		setRendering({ current: "rendering", progress: 0 })
+	const [isFFMpegReady, setIsFFMpegReady] = React.useState(false)
+	const ffmpeg = React.useMemo(() => createFFmpeg({ log: true }), [])
+	React.useEffect(() => {
+		ffmpeg.load().then(() => setIsFFMpegReady(true))
+	}, [])
 
-		const targetBuffer = document.createElement("canvas")
-		targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : windowSize[0]
-		targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
+	return {
+		status: rendering,
+		export: async (format: "GIF" | "MP4") => {
+			if (!isFFMpegReady) {
+				alert("FFMPEG NOT READY YET")
+				return
+			}
 
-		const gif = new GIF({ workers: 8, quality: 10, repeat: 0 })
-		const totalFrames = def.totalFrames || def.fps
+			setRendering({ current: "rendering", progress: 0 })
 
-		const frame_jump = def.fps
-		for (let frame_step = 0; frame_step < totalFrames; frame_step += frame_jump) {
-			await defer(async () => {
-				for (let frame = frame_step; frame < frame_step + frame_jump && frame < totalFrames; ++frame) {
+			const targetBuffer = document.createElement("canvas")
+			targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : windowSize[0]
+			targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
 
-					await render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
-					gif.addFrame(targetBuffer, { delay: 1000 / (def.speed * def.fps), copy: true })
+			const gif = new GIF({ workers: 8, quality: 10, repeat: 0 })
+			const totalFrames = def.totalFrames || def.fps
+
+			const frame_jump = def.fps
+			for (let frame_step = 0; frame_step < totalFrames; frame_step += frame_jump) {
+				await defer(async () => {
+					for (let frame = frame_step; frame < frame_step + frame_jump && frame < totalFrames; ++frame) {
+
+						await render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
+						gif.addFrame(targetBuffer, { delay: 1000 / (def.speed * def.fps), copy: true })
+					}
+				})
+				setRendering({ current: "rendering", progress: (frame_step / totalFrames) })
+			}
+			gif.on("progress", (e: number) => {
+				setRendering({ current: "exporting", progress: e })
+			})
+			gif.on("finished", async (blob: Blob) => {
+				switch (format) {
+					case "GIF":
+						window.open(URL.createObjectURL(blob))
+						setRendering({ current: "no" })
+						break
+					case "MP4": {
+						setRendering({ current: "converting", progress: 100 })
+
+						ffmpeg.FS("writeFile", "in.gif", await fetchFile(blob))
+
+						await ffmpeg.run("-i", "in.gif", "-movflags", "faststart", "-pix_fmt", "yuv420p", "out.mp4")
+
+						const filedata = ffmpeg.FS("readFile", "out.mp4")
+						window.open(URL.createObjectURL(new Blob([filedata.buffer], { type: "video/mp4" })))
+						setRendering({ current: "no" })
+						break
+					}
+
 				}
 			})
-			setRendering({ current: "rendering", progress: (frame_step / totalFrames) })
-		}
-		gif.on("progress", (e: number) => {
-			setRendering({ current: "exporting", progress: e })
-		})
-		gif.on("finished", (blob: Blob) => {
-			window.open(URL.createObjectURL(blob))
-			setRendering({ current: "no" })
-		})
-		gif.render()
-	}]
+			gif.render()
+		},
+		isReady: isFFMpegReady
+	}
 }
-
