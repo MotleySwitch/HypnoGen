@@ -897,8 +897,10 @@ export function useRenderVideo(def: RenderDef, assets: Assets): {
 						})
 						setRendering({ current: "rendering", progress: (frame_step / totalFrames) })
 					}
-					setRendering({ current: "converting", progress: 100 })
-
+					setRendering({ current: "exporting", progress: 0 })
+					ffmpeg.setProgress(p => {
+						setRendering({ "current": "exporting", progress: p.ratio })
+					})
 					await ffmpeg.run("-framerate", def.fps.toString(), "-pattern_type", "glob", "-i", "frame-*.png", "output.mp4")
 
 					const filedata = ffmpeg.FS("readFile", "output.mp4")
