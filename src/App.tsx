@@ -61,7 +61,7 @@ export default function App() {
 				<DialogActions>
 					<Button color="secondary" onClick={() => setEditorOpen(false)}>Close</Button>
 
-					<Button color="primary" disabled={def.totalFrames <= 0} onClick={() => {
+					<Button color="primary" disabled={!render.isReady || def.totalFrames <= 0} onClick={() => {
 						setEditorOpen(false)
 						render.export("GIF")
 					}}>Render (GIF)</Button>
