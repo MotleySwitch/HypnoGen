@@ -11,6 +11,7 @@ import { TextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToC
 import { loadVideo, renderVideoToCanvas } from "./webgl/Video"
 import type { RenderDef } from "./webgl/webgl.react"
 
+const gifsicle = require("gifsicle-wasm-browser").default
 const GIF = require("gif.js.optimized")
 
 export type DrawCommandType =
@@ -100,7 +101,7 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = ([
 		"name": "Pattern (GLSL)"
 	},
 	{
-		"type": "effect",
+		"type": "local-effect",
 		"name": "Effect (GLSL)"
 	},
 	{
@@ -175,7 +176,7 @@ export type DrawCommand =
 		}
 	}
 	| {
-		readonly type: "effect"
+		readonly type: "local-effect"
 		readonly shader: string
 		readonly children: readonly DrawCommand[]
 	}
@@ -282,8 +283,8 @@ void main(void) {
 `,
 			colors: {}
 		}
-		case "effect": return {
-			type: "effect",
+		case "local-effect": return {
+			type: "local-effect",
 			shader: `uniform float time;
 uniform vec2 resolution;
 uniform sampler2D texture;
@@ -584,7 +585,7 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 			}
 		}
 
-		case "effect": {
+		case "local-effect": {
 			const shader = assets.shaders[hash(tree.shader)]
 			if (shader == null) {
 				return
@@ -696,7 +697,7 @@ export function extractUsedLocalShaders(commands: readonly DrawCommand[]): reado
 			case "local-pattern":
 				return [...prev, [hash(curr.pattern), curr.pattern]]
 
-			case "effect":
+			case "local-effect":
 				return [...prev, [hash(curr.shader), curr.shader], ...extractUsedLocalShaders(curr.children)]
 
 			default:
@@ -805,7 +806,7 @@ export async function loadVideoAssets(videos: readonly string[]): Promise<VideoS
 }
 
 export type RenderingStatus = { readonly current: "no" } | {
-	readonly current: "rendering" | "exporting" | "converting"
+	readonly current: "rendering" | "exporting" | "optimizing"
 	readonly progress: number
 }
 
@@ -864,9 +865,29 @@ export function useRenderVideo(def: RenderDef, assets: Assets): {
 						setRendering({ current: "exporting", progress: e })
 					})
 					gif.on("finished", async (blob: Blob) => {
-						window.open(URL.createObjectURL(blob))
-						setRendering({ current: "no" })
+						try {
+							if (blob.size > 5 * (1024 * 1024)) {
+								setRendering({ current: "optimizing", progress: 100 })
+								const [optimized]: [File] = await gifsicle.run({
+									input: [{
+										file: URL.createObjectURL(blob),
+										name: "1.gif",
+									}],
+									command: ["-O3 --lossy=60 1.gif -o /out/out.gif"]
+								})
+								setRendering({ current: "no" })
+								window.open(URL.createObjectURL(optimized))
+							} else {
+								setRendering({ current: "no" })
+								window.open(URL.createObjectURL(blob))
+							}
+						} catch (err) {
+							console.error(err)
+							setRendering({ current: "no" })
+							window.open(URL.createObjectURL(blob))
+						}
 					})
+
 					gif.render()
 					break;
 				}

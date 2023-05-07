@@ -26,7 +26,7 @@ export default function App() {
 	return (
 		<SpiralViewerStyles>
 			<SpiralViewer disabled={openEditor || render.status.current !== "no"} className="page" def={def} assets={assets} onClick={() => setEditorOpen(true)} />
-			<Dialog open={openEditor} maxWidth="xl" fullWidth>
+			<Dialog open={openEditor} fullScreen>
 				<DialogActions>
 					<Button component="a" download href={URL.createObjectURL(new Blob([JSON.stringify(def)], { type: "application/json" }))} color="primary">
 						Download JSON

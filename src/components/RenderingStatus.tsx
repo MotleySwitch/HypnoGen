@@ -16,7 +16,7 @@ export const RenderingSpinner = ({ className, status }: { readonly className?: s
 					color="secondary" variant="determinate"
 					value={50 + (status.progress * 50)} />}
 
-				{status.current == "converting" && <CircularProgress
+				{status.current == "optimizing" && <CircularProgress
 					className={className} size={360}
 					color="secondary" variant="indeterminate" />}
 

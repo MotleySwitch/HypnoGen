@@ -771,7 +771,7 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 				</Accordion>
 			)
 
-		case "effect":
+		case "local-effect":
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
 					<AccordionSummary expandIcon={<ExpandMore />}>
