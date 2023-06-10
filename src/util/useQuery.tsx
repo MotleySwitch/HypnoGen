@@ -11,7 +11,7 @@ const SearchContext = React.createContext({
 
 export const SearchProvider = ({ children }: { readonly children: React.ReactChild }) => {
 	const [search, setSearch] = React.useState("")
-	React.useEffect(() => { setSearch(window.location.hash) }, [])
+	React.useEffect(() => { setSearch(window.location.hash || window.location.search) }, [])
 	//React.useEffect(() => {
 	//	if (search.length < 2048) {
 	//		history.pushState(null, "", search)
@@ -40,7 +40,7 @@ export function useQueryParams(): readonly [QueryParams, (key: string, value: re
 	const [search, setSearch] = useSearch()
 
 	function parseSearch(search: string) {
-		if (search.startsWith("#")) {
+		if (search.startsWith("#") || search.startsWith("?")) {
 			return atob(search.substring(1)).split("&").map(kv => {
 				const [head, ...tail] = kv.split("=")
 				const key = decodeURIComponent(head)
@@ -48,7 +48,7 @@ export function useQueryParams(): readonly [QueryParams, (key: string, value: re
 
 				return [key, value] as readonly [string, string]
 			}).reduce((state, [key, value]) => ({ ...state, [key]: [...(state[key] ?? []), value] }), {} as QueryParams)
-		} else {
+		} else  {
 			return {}
 		}
 	}
