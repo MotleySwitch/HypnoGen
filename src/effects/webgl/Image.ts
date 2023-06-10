@@ -1,4 +1,5 @@
 import type { Color } from "./Color"
+import { renderFlashToCanvas, renderSwitchToCanvas } from "./Draw"
 
 export type BackgroundImageProps = {
 	readonly image: HTMLImageElement
@@ -41,37 +42,17 @@ export type FlashImageProps = {
 export function renderFlashImageToCanvas(dom: HTMLCanvasElement, frame: number, opts: FlashImageProps) {
 	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
 	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
-	const framePosition = frame % totalFramesLength
-	const image = opts.images[((frame / totalFramesLength) | 0) % opts.images.length]
+	const steps = opts.images.map(image => async (dom: HTMLCanvasElement) => renderImageToCanvas(dom, {
+		image,
+		styles: {
+			padding: opts.styles?.padding
+		}
+	}));
 
-	if (framePosition < stageLengths[0]) {
-	} else if (framePosition < stageLengths[0] + stageLengths[1]) {
-		renderImageToCanvas(dom, {
-			image,
-			styles: {
-				alpha: (framePosition - stageLengths[0]) / stageLengths[1] * (opts.styles?.alpha ?? 1),
-				padding: opts.styles?.padding
-			}
-		})
-	} else if (framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2]) {
-		renderImageToCanvas(dom, {
-			image,
-			styles: {
-				alpha: (opts.styles?.alpha ?? 1),
-				padding: opts.styles?.padding
-			}
-		})
-	} else if (framePosition < stageLengths[0] + stageLengths[1] + stageLengths[2] + stageLengths[3]) {
-		const pos = framePosition - (stageLengths[0] + stageLengths[1] + stageLengths[2])
-		renderImageToCanvas(dom, {
-			image,
-			styles: {
-				alpha: (stageLengths[3] - pos) / stageLengths[3] * (opts.styles?.alpha ?? 1),
-				padding: opts.styles?.padding
-			}
-		})
-	} else {
-	}
+	return renderFlashToCanvas(dom, frame, { stageLengths: stageLengths, style: { alpha: opts.styles?.alpha } }, dom => renderSwitchToCanvas(dom, frame, {
+		stepLength: totalFramesLength,
+		steps: steps
+	}))
 }
 
 

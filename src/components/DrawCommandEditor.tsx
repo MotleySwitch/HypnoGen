@@ -7,7 +7,7 @@ import { SketchPicker } from "react-color"
 
 import type { Assets, DrawCommand } from "../effects/webgl"
 import { Color, toCssStringRGB, toCssStringRGBA } from "../effects/webgl/Color"
-import { AvailableShaders } from "../effects/webgl/Shaders"
+import { AvailableEffects, AvailablePatterns } from "../effects/webgl/Shaders"
 import type { TextAlign as FlashTextAlign, FlashTextStyle, TextStyle, SubliminalStyle } from "../effects/webgl/Text"
 import { PatternEditor } from "./PatternEditor"
 import { useCopyPaste } from "../util/useCopyPaste"
@@ -697,8 +697,8 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 					<AccordionDetails>
 						<Grid container spacing={3}>
 							<Grid item xs={12}>
-								<Select fullWidth label="Shader" value={value.pattern} onChange={pattern => onChange({ ...value, pattern: pattern.target.value as string })}>
-									{AvailableShaders.map(shader => <MenuItem key={shader.key} value={shader.key}>{shader.name}</MenuItem>)}
+								<Select fullWidth label="Pattern" value={value.pattern} onChange={pattern => onChange({ ...value, pattern: pattern.target.value as string })}>
+									{AvailablePatterns.map(shader => <MenuItem key={shader.key} value={shader.key}>{shader.name}</MenuItem>)}
 								</Select>
 							</Grid>
 							<Grid item xs={12}>
@@ -732,8 +732,8 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 					<AccordionDetails>
 						<Grid container spacing={3}>
 							<Grid item xs={12}>
-								<Select fullWidth label="Shader" value={selectedSpiral} onChange={async pattern => {
-									await fetch(`shaders/${[pattern.target.value]}.fs`)
+								<Select fullWidth label="Pattern" value={selectedSpiral} onChange={async pattern => {
+									await fetch(`patterns/${[pattern.target.value]}.fs`)
 										.then($fragment => $fragment.text())
 										.then(fragment => {
 											onChange({
@@ -743,7 +743,7 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 										})
 									setSelectedSpiral(pattern.target.value as string)
 								}}>
-									{AvailableShaders.map(shader => <MenuItem key={shader.key} value={shader.key}>{shader.name}</MenuItem>)}
+									{AvailablePatterns.map(shader => <MenuItem key={shader.key} value={shader.key}>{shader.name}</MenuItem>)}
 								</Select>
 							</Grid>
 							<Grid item xs={12}>
@@ -779,6 +779,21 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 					</AccordionSummary>
 					<AccordionDetails>
 						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<Select fullWidth label="Effects" value={selectedSpiral} onChange={async effect => {
+									await fetch(`effects/${[effect.target.value]}.fs`)
+										.then($fragment => $fragment.text())
+										.then(fragment => {
+											onChange({
+												...value,
+												shader: fragment
+											})
+										})
+									setSelectedSpiral(effect.target.value as string)
+								}}>
+									{AvailableEffects.map(shader => <MenuItem key={shader.key} value={shader.key}>{shader.name}</MenuItem>)}
+								</Select>
+							</Grid>
 							<Grid item xs={12}>
 								<TextField label="Shader GLSL" value={value.shader} onChange={shader => onChange({ ...value, shader: shader.target.value })} fullWidth multiline />
 							</Grid>

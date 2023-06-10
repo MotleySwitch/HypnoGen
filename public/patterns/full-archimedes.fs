@@ -3,7 +3,7 @@ uniform vec2 resolution;
 uniform vec4 fgColor;
 
 void main(void) {
-    gl_FragColor = vec4(1.0);
+    gl_FragColor = vec4(0.0);
     
     vec2 center = resolution.xy / 2.0;
     vec2 dist = center - gl_FragCoord.xy;

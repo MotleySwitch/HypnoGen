@@ -11,21 +11,12 @@ const SearchContext = React.createContext({
 
 export const SearchProvider = ({ children }: { readonly children: React.ReactChild }) => {
 	const [search, setSearch] = React.useState("")
-	const [hideUrl, setHideUrl] = React.useState(false)
 	React.useEffect(() => { setSearch(window.location.search) }, [])
-	React.useEffect(() => {
-		if (search.length < 2048) {
-			history.pushState(null, "", search)
-		} else if (!hideUrl) {
-			setHideUrl(true)
-		}
-	}, [search])
-
-	React.useEffect(() => {
-		if (hideUrl) {
-			history.pushState(null, "", "?")
-		}
-	}, [hideUrl])
+	//React.useEffect(() => {
+	//	if (search.length < 2048) {
+	//		history.pushState(null, "", search)
+	//	}
+	//}, [search])
 
 	return (
 		<SearchContext.Provider value={{ search, setSearch }}>
@@ -40,7 +31,14 @@ export function useSearch(): [string, (setter: (value: string) => string) => voi
 	return [ctx.search, ctx.setSearch]
 }
 
+export function toQueryString(params: QueryParams) {
+	return `?${btoa(Object.keys(params).flatMap(key => (params[key] ?? []).map(value => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)).join("&"))}`
+}
+
+
 export function useQueryParams(): readonly [QueryParams, (key: string, value: readonly string[]) => void] {
+	const [search, setSearch] = useSearch()
+
 	function parseSearch(search: string) {
 		if (search.startsWith("?")) {
 			return atob(search.substring(1)).split("&").map(kv => {
@@ -55,15 +53,8 @@ export function useQueryParams(): readonly [QueryParams, (key: string, value: re
 		}
 	}
 
-	const [search, setSearch] = useSearch()
 	const value = React.useMemo(() => parseSearch(search), [search])
-
-	const setSearchParams = (key: string, value: readonly string[]) => {
-		setSearch((search: string) => {
-			const change = { ...parseSearch(search), [key]: value }
-			return `?${btoa(Object.keys(change).flatMap(key => (change[key] ?? []).map(value => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)).join("&"))}`
-		})
-	}
+	const setSearchParams = (key: string, value: readonly string[]) => setSearch((search: string) =>  toQueryString({ ...parseSearch(search), [key]: value }))
 
 	return [value, setSearchParams]
 }

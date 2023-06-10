@@ -104,7 +104,7 @@ export async function createPatternShaderFromText([width, height]: readonly [num
 	dom.height = height
 
 	const webgl = new WebGLRef(dom)
-	const vertex = await fetch("shaders/spiral.vs").then(r => { return r.text() })
+	const vertex = await fetch("patterns/spiral.vs").then(r => { return r.text() })
 
 	const buffer = webgl.createBuffer()
 	if (!buffer.ok()) {

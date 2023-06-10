@@ -1,5 +1,5 @@
 import React from "react"
-import { Button, Dialog, DialogActions, DialogContent, Grid } from "@mui/material"
+import { Box, Button, Dialog, DialogActions, DialogContent, Grid, TextField } from "@mui/material"
 
 import { RenderDefEditor } from "./components/RenderDefEditor"
 import { RenderingSpinner } from "./components/RenderingStatus"
@@ -7,6 +7,7 @@ import { SpiralViewer } from "./components/SpiralViewer"
 import { useRenderVideo } from "./effects/webgl"
 import { useAssets, useRenderDef } from "./effects/webgl/webgl.react"
 import styled from "@emotion/styled"
+import { useSearch } from "./util/useQuery"
 
 const SpiralViewerStyles = styled("div")({
 	"& .page": {
@@ -23,11 +24,16 @@ export default function App() {
 	const assets = useAssets(def)
 
 	const render = useRenderVideo(def, assets)
+	const [search, _] = useSearch()
+
 	return (
 		<SpiralViewerStyles>
 			<SpiralViewer disabled={openEditor || render.status.current !== "no"} className="page" def={def} assets={assets} onClick={() => setEditorOpen(true)} />
 			<Dialog open={openEditor} fullScreen>
 				<DialogActions>
+					<Button component="a" href={`${window.location.origin}${window.location.pathname}${search}`}>Link</Button>
+					<Box sx={{ flexGrow: 1 }} />
+
 					<Button component="a" download href={URL.createObjectURL(new Blob([JSON.stringify(def)], { type: "application/json" }))} color="primary">
 						Download JSON
 					</Button>

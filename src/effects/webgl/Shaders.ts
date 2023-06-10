@@ -1,4 +1,4 @@
-export const AvailableShaders = [
+export const AvailablePatterns = [
     {
         "key": "pendulum-generic",
         "name": "Pendulum (Generic)"
@@ -322,5 +322,20 @@ export const AvailableShaders = [
     {
         "key": "test-weird-spiral-5",
         "name": "Spiral (Weird, 5)"
+    }
+].sort((a, b) => a.name < b.name ? -1 : 1)
+
+export const AvailableEffects = [
+    {
+        "key": "default",
+        "name": "Default (No-Op)"
+    },
+    {
+        "key": "distorted-crt",
+        "name": "Distortion (CRT)"
+    },
+    {
+        "key": "static",
+        "name": "Static"
     }
 ].sort((a, b) => a.name < b.name ? -1 : 1)

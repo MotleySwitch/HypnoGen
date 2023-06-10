@@ -53,7 +53,7 @@ export const useRenderToCanvas = (target: HTMLCanvasElement | null, {
 	const frame = React.useRef(0)
 	const buffer = React.useRef<HTMLCanvasElement>()
 	useRequestAnimationFrameAsync(async () => {
-		if (!enable || !target) {
+		if (!enable || !target || !assets) {
 			return
 		}
 
@@ -71,19 +71,19 @@ export const useRenderToCanvas = (target: HTMLCanvasElement | null, {
 			return
 		}
 
+		let frameSkip = 0;
 		while (delta >= frameLength) {
-			frame.current = frame.current + 1
+			frameSkip += 1;
 			delta = delta - frameLength
 		}
 		lastUpdate.current = performance.now() - delta
+		frame.current += frameSkip
 
 		const actualFrame = (def.totalFrames > 0 ? frame.current % def.totalFrames : frame.current)
-		if (target != null && assets != null) {
-			await render(buffer.current, def.pattern, actualFrame, assets, { fps: def.fps })
+		await render(buffer.current, def.pattern, actualFrame, assets, { fps: def.fps })
 
-			clear(target)
-			target.getContext("2d")?.drawImage(buffer.current, 0, 0)
-		}
+		clear(target)
+		target.getContext("2d")?.drawImage(buffer.current, 0, 0)
 	}, [enable, def, assets, target])
 }
 

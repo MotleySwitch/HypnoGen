@@ -129,7 +129,7 @@ export function renderSubliminalToCanvas(dom: HTMLCanvasElement, frame: number, 
 		return async (dom: HTMLCanvasElement) => renderTextToCanvas(dom, { value, style })
 	})
 
-	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, async dom => {
+	return renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, async dom => {
 		await renderSwitchToCanvas(dom, frame, {
 			stepLength: totalFramesLength,
 			steps: commands
@@ -169,7 +169,7 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 
 	const commands = opts.text.map(value => async (dom: HTMLCanvasElement) => renderTextToCanvas(dom, { value, style }))
 
-	renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, async dom => {
+	return renderFlashToCanvas(dom, frame, { stageLengths: opts.stageLengths }, async dom => {
 		await renderSwitchToCanvas(dom, frame, {
 			stepLength: totalFramesLength,
 			steps: commands
