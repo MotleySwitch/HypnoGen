@@ -463,7 +463,7 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 		case "switch":
 			return await renderSwitchToCanvas(dom, frame, {
 				stepLength: tree.stepLength ?? 60,
-				steps: tree.children.map(child => async (dom: HTMLCanvasElement) => renderTree(dom, child, frame, assets, opts))
+				steps: tree.children.map(child => (dom: HTMLCanvasElement) => renderTree(dom, child, frame, assets, opts))
 			})
 
 		case "fade-in":
