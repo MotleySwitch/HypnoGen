@@ -181,9 +181,13 @@ export type SwitchProps = {
 
 export async function renderSwitchToCanvas(dom: HTMLCanvasElement, frame: number, opts: SwitchProps): Promise<void> {
 	if (opts.steps.length > 0 && opts.stepLength > 0) {
+		if (frame < 0) {
+			frame = (opts.stepLength * opts.steps.length) - frame;
+		}
 		const index = Math.floor(frame / opts.stepLength) % opts.steps.length
 		const render = opts.steps[index]
 
+		console.log(opts.steps, frame, index)
 		await render(dom)
 	}
 }
