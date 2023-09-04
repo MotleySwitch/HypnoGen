@@ -860,6 +860,65 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 				</Accordion>
 			)
 
+		case "tween-position":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Tween</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={6}>
+								<CoordsEditor label="Start Position" value={value.startPosition} onChange={startPosition => onChange({ ...value, startPosition })} />
+							</Grid>
+							<Grid item xs={6}>
+								<CoordsEditor label="End Position" value={value.endPosition} onChange={endPosition => onChange({ ...value, endPosition })} />
+							</Grid>
+
+							<Grid item xs={6}>
+								<TextField
+									type="number" label="Start Frame" fullWidth inputProps={{ min: 0, step: 1 }}
+									value={value.startFrame} onChange={v => onChange({ ...value, startFrame: parseInt(v.target.value || "0") })} />
+							</Grid>
+							<Grid item xs={6}>
+								<TextField
+									type="number" label="Length" fullWidth inputProps={{ min: 0, step: 1 }}
+									value={value.frameLength} onChange={v => onChange({ ...value, frameLength: parseInt(v.target.value || "0") })} />
+							</Grid>
+
+
+							<Grid item xs={12}>
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
+
+		case "looping":
+			return (
+				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
+					<AccordionSummary expandIcon={<ExpandMore />}>
+						<Typography variant="h3">Looping</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Grid container spacing={3}>
+							<Grid item xs={12}>
+								<TextField
+									type="number" label="Frame Length" fullWidth inputProps={{ min: 0, step: 1 }}
+									value={value.frameLength} onChange={v => onChange({ ...value, frameLength: parseInt(v.target.value || "0") })} />
+							</Grid>
+
+							<Grid item xs={12}>
+								<PatternEditor fps={fps} assets={assets} value={value.children} onChange={children => onChange({ ...value, children })} />
+							</Grid>
+						</Grid>
+					</AccordionDetails>
+				</Accordion>
+			)
+
+
 		default:
 			return (
 				<Typography variant="body1"> Unrecognized command type '{(value as { readonly type: string }).type}'</Typography>

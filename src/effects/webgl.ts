@@ -10,6 +10,7 @@ import { createPatternShader, createPatternShaderFromText, PatternShader, render
 import { TextAlign, FlashTextStyle, renderFlashTextToCanvas, renderSubliminalToCanvas, renderTextToCanvas, TextStyle, SubliminalStyle } from "./webgl/Text"
 import { loadVideo, renderVideoToCanvas } from "./webgl/Video"
 import type { RenderDef } from "./webgl/webgl.react"
+import { renderTweenPositionWithCanvas } from "./webgl/Translate"
 
 const gifsicle = require("gifsicle-wasm-browser").default
 const GIF = require("gif.js.optimized")
@@ -36,6 +37,8 @@ export type DrawCommandType =
 	| "flash-fill"
 	| "image"
 	| "video"
+	| "tween-position"
+	| "looping"
 
 export type DrawCommandDef = { readonly type: DrawCommandType; readonly name: string }
 
@@ -131,6 +134,14 @@ export const AvailableDrawCommands: readonly DrawCommandDef[] = ([
 	{
 		"type": "video",
 		"name": "Video"
+	},
+	{
+		"type": "tween-position",
+		"name": "Tween (Position)"
+	},
+	{
+		"type": "looping",
+		"name": "Looping"
 	}
 ] as DrawCommandDef[]).sort((a, b) => a.name > b.name ? 1 : -1)
 
@@ -246,6 +257,19 @@ export type DrawCommand =
 		readonly type: "video"
 		readonly video: string
 	}
+	| {
+		readonly type: "tween-position"
+		readonly startPosition: readonly [number, number]
+		readonly endPosition: readonly [number, number]
+		readonly startFrame: number
+		readonly frameLength: number
+		readonly children: readonly DrawCommand[]
+	}
+	| {
+		readonly type: "looping"
+		readonly frameLength: number
+		readonly children: readonly DrawCommand[]
+	}
 
 export const DrawCommand = (value: string): DrawCommand => {
 	switch (value) {
@@ -308,6 +332,8 @@ void main(void) {
 		case "change-speed": return { type: "change-speed", factor: 1, children: [] }
 		case "image": return { type: "image", image: "./assets/eyes.png" }
 		case "video": return { type: "video", video: "./assets/base.mp4" }
+		case "tween-position": return { type: "tween-position", children: [], endPosition: [0, 0], startPosition: [0, 0], frameLength: 60, startFrame: 0 }
+		case "looping": return { type: "looping", children: [], frameLength: 60 }
 		default:
 			return { type: "text", value }
 	}
@@ -357,7 +383,7 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 			return fill(dom, tree.color)
 
 		case "opacity":
-			return await opacity(dom, tree.value, async dom => { forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)) })
+			return await opacity(dom, tree.value, dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)))
 
 		case "frame-offset":
 			await forEachAsync(tree.children, async child => await renderTree(dom, child, frame + tree.by, assets, opts))
@@ -506,6 +532,19 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 			} else {
 				return await renderVideoToCanvas(dom, frame, { video, fps: opts?.fps })
 			}
+
+		case "tween-position":
+			return await renderTweenPositionWithCanvas(dom, frame, {
+				endPosition: tree.endPosition,
+				interpolation: "linear",
+				length: tree.frameLength,
+				render: dom => forEachAsync(tree.children, child => renderTree(dom, child, frame, assets, opts)),
+				startFrame: tree.startFrame,
+				startPosition: tree.startPosition
+			})
+
+		case "looping":
+			return await forEachAsync(tree.children, child => renderTree(dom, child, frame % (tree.frameLength || 1), assets, opts))
 
 		default:
 			console.log("Unrecognized command type", tree)

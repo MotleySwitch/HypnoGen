@@ -70,22 +70,6 @@ export function renderTextToCanvas(dom: HTMLCanvasElement, opts: TextProps) {
 
 	let px = (((1.0 + x) / 2.0) * dom.width) - (measure.width / 2.0)
 	let py = (((1.0 + y) / 2.0) * dom.height) - (fontSize / 2.0)
-	if (px < 10.0) {
-		px = 10.0
-		context.textAlign = "left"
-	} else if (px + measure.width >= (dom.width - 10.0)) {
-		px = (dom.width - measure.width - 10.0)
-		context.textAlign = "left"
-	} else {
-		context.textAlign = "center"
-		px = (((1.0 + x) / 2.0) * dom.width)
-	}
-
-	if (py < 10.0) {
-		py = 10.0
-	} else if (py + (fontSize / 2.0) >= (dom.height - fontSize - 10.0)) {
-		py = (dom.height - fontSize - 10.0)
-	}
 
 	const fill = toCssStringRGB(...(style?.fillColor?.slice(0, 3) ?? [1, 1, 1]) as [number, number, number])
 	const stroke = toCssStringRGB(...(style?.strokeColor?.slice(0, 3) ?? [1 / 256, 1 / 256, 1 / 256]) as [number, number, number])

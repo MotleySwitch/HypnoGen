@@ -1,4 +1,3 @@
-import type { Color } from "./Color"
 import { renderFlashToCanvas, renderSwitchToCanvas } from "./Draw"
 
 export type BackgroundImageProps = {

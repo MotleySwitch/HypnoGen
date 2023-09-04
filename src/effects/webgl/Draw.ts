@@ -79,13 +79,12 @@ export function clear(dom: HTMLCanvasElement) {
 }
 
 export async function opacity(dom: HTMLCanvasElement, opacity: number, render: (dom: HTMLCanvasElement) => Promise<void>) {
-	const context = dom.getContext("2d")!
-
 	const src = document.createElement("canvas")
 	src.width = dom.width
 	src.height = dom.height
 	await render(src)
 
+	const context = dom.getContext("2d")!
 	context.save()
 	context.globalAlpha = context.globalAlpha * opacity
 	context.drawImage(src, 0, 0)
@@ -187,7 +186,6 @@ export async function renderSwitchToCanvas(dom: HTMLCanvasElement, frame: number
 		const index = Math.floor(frame / opts.stepLength) % opts.steps.length
 		const render = opts.steps[index]
 
-		console.log(opts.steps, frame, index)
 		await render(dom)
 	}
 }

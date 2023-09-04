@@ -30,6 +30,8 @@ const PreviewStyles = styled("div")({
 export const RenderDefEditor = ({ assets, value, onChange }: RenderDefEditorProps) => {
 	const [enablePreviewTimeSelector, setEnablePreviewTimeSelector] = React.useState(false)
 	const [targetFrame, setTargetFrame] = React.useState(0)
+	const currentFrame = React.useRef(0)
+
 	return (
 		<PreviewStyles>
 			<Typography variant="h1" paragraph>Spiral Editor</Typography>
@@ -44,8 +46,25 @@ export const RenderDefEditor = ({ assets, value, onChange }: RenderDefEditorProp
 
 					<div className="root">
 						{!enablePreviewTimeSelector
-							? <div className="background">
-								<SpiralViewer className="canvas" def={value} assets={assets} onClick={() => setEnablePreviewTimeSelector(true)} />
+							? <div>
+								<div className="background">
+									<SpiralViewer className="canvas" def={value} assets={assets} onClick={() => setEnablePreviewTimeSelector(true)} onRender={frame => {
+										window.document.getElementById("spiral_viewer_current_frame")!.style.width = `${100 * Math.max(0, Math.min(1, (value.totalFrames != 0 ? currentFrame.current / value.totalFrames : 0)))}%`
+										currentFrame.current = frame
+									}} />
+								</div>
+								<div style={{
+									width: "100%",
+									height: "10px",
+									marginTop: "10px"
+								}}>
+									<div id="spiral_viewer_current_frame"
+										style={{
+											width: `${100 * Math.max(0, Math.min(1, (value.totalFrames != 0 ? currentFrame.current / value.totalFrames : 0)))}%`,
+											height: "5px",
+											background: "black"
+										}} />
+								</div>
 							</div>
 							: <div>
 								<div className="background">

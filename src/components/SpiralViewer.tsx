@@ -10,9 +10,10 @@ export type SpiralViewerProps = {
 	readonly def: RenderDef
 	readonly assets: Assets
 	readonly onClick?: () => void
+	readonly onRender?: (frame: number) => void
 }
 
-export const SpiralViewer = ({ disabled, className, def, assets, onClick }: SpiralViewerProps) => {
+export const SpiralViewer = ({ disabled, className, def, assets, onClick, onRender }: SpiralViewerProps) => {
 	const windowSize = useWindowResolution()
 	const sizedDef = React.useMemo(() => ({
 		...def,
@@ -23,7 +24,7 @@ export const SpiralViewer = ({ disabled, className, def, assets, onClick }: Spir
 	}), [def, windowSize])
 
 	const [canvasRef, setCanvasRef] = React.useState<HTMLCanvasElement | null>(null)
-	useRenderToCanvas(canvasRef, { enable: !disabled, assets, def: sizedDef })
+	useRenderToCanvas(canvasRef, { enable: !disabled, assets, def: sizedDef, onRender })
 
 	return (
 		<canvas className={className} width={sizedDef.resolution[0]} height={sizedDef.resolution[1]} ref={r => setCanvasRef(r)} onClick={onClick} />

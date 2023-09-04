@@ -20,12 +20,6 @@ export const useRenderDef = (): readonly [RenderDef, (def: RenderDef) => void] =
 	const [totalFrames, setTotalFrames] = useQueryNumber<number>("total-frames", fps)
 	const [resolution, setResolution] = useQueryJson<readonly [number, number]>("screen", [1280, 720])
 
-	//const [pattern, setPattern] = React.useState<readonly DrawCommand[]>([])
-	//const [speed, setSpeed] = React.useState<number>(1)
-	//const [fps, setFps] = React.useState<number>(60)
-	//const [totalFrames, setTotalFrames] = React.useState<number>(fps)
-	//const [resolution, setResolution] = React.useState<readonly [number, number]>([1280, 720])
-
 	const def = React.useMemo(() => ({ pattern, speed, fps, totalFrames, resolution }), [pattern, speed, fps, totalFrames, resolution])
 
 	return [
@@ -43,11 +37,13 @@ export const useRenderDef = (): readonly [RenderDef, (def: RenderDef) => void] =
 export const useRenderToCanvas = (target: HTMLCanvasElement | null, {
 	enable,
 	def,
-	assets
+	assets,
+	onRender
 }: {
 	readonly enable: boolean
 	readonly def: RenderDef
 	readonly assets: Assets
+	readonly onRender?: (frame: number) => void
 }) => {
 	const lastUpdate = React.useRef(performance.now())
 	const frame = React.useRef(0)
@@ -84,6 +80,7 @@ export const useRenderToCanvas = (target: HTMLCanvasElement | null, {
 
 		clear(target)
 		target.getContext("2d")?.drawImage(buffer.current, 0, 0)
+		onRender && onRender(actualFrame)
 	}, [enable, def, assets, target])
 }
 
