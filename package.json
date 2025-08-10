@@ -18,7 +18,6 @@
     "@types/gif.js": "0.2.2",
     "@types/pngjs": "6.0.1",
     "@types/react-color": "3.0.6",
-    "canvas": "^2.11.2",
     "fluent-ffmpeg": "^2.1.2",
     "gif.js": "0.2.0",
     "gif.js.optimized": "^1.0.1",

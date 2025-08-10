@@ -76,6 +76,11 @@ export default function App() {
 						setEditorOpen(false)
 						render.export("MP4")
 					}}>Render (MP4)</Button>
+
+					<Button color="primary" disabled={!render.isReady || def.totalFrames <= 0} onClick={() => {
+						setEditorOpen(false)
+						render.export("WEBP")
+					}}>Render (WEBP)</Button>
 				</DialogActions>
 			</Dialog>
 			<RenderingSpinner status={render.status} />

@@ -701,7 +701,7 @@ export type RenderingStatus = { readonly current: "no" } | {
 
 export function useRenderVideo(def: RenderDef, assets: Assets): {
 	readonly status: RenderingStatus,
-	readonly export: (format: "GIF" | "MP4") => void,
+	readonly export: (format: "GIF" | "MP4" | "WEBP") => void,
 	readonly isReady: boolean
 } {
 	const lpad = (value: string, length: number) => {
@@ -722,7 +722,7 @@ export function useRenderVideo(def: RenderDef, assets: Assets): {
 
 	return {
 		status: rendering,
-		export: async (format: "GIF" | "MP4") => {
+		export: async (format: "GIF" | "MP4" | "WEBP") => {
 			if (!isFFMpegReady) {
 				alert("FFMPEG NOT READY YET")
 				return
@@ -813,7 +813,7 @@ export function useRenderVideo(def: RenderDef, assets: Assets): {
 					await ffmpeg.run("-framerate", (def.speed * def.fps).toString(), "-pattern_type", "glob", "-i", "frame-*.png", "-pix_fmt", "yuv420p", "output.mp4")
 
 					const filedata = ffmpeg.FS("readFile", "output.mp4")
-					window.open(URL.createObjectURL(new Blob([filedata.buffer], { type: "video/mp4" })))
+					window.open(URL.createObjectURL(new Blob([filedata.buffer as any], { type: "video/mp4" })))
 
 					for (let frame = 0; frame < totalFrames; ++frame) {
 						ffmpeg.FS("unlink", `frame-${lpad(frame.toString(), Math.floor(Math.log10(totalFrames) + 1))}.png`)
@@ -823,7 +823,51 @@ export function useRenderVideo(def: RenderDef, assets: Assets): {
 					setRendering({ current: "no" })
 					break;
 				}
+
+				case "WEBP": {
+					setRendering({ current: "rendering", progress: 0 })
+
+					const targetBuffer = document.createElement("canvas")
+					targetBuffer.width = def.resolution[0] > 0 ? def.resolution[0] : windowSize[0]
+					targetBuffer.height = def.resolution[1] > 0 ? def.resolution[1] : windowSize[1]
+
+					const totalFrames = def.totalFrames || def.fps
+
+					const frame_jump = def.fps
+					for (let frame_step = 0; frame_step < totalFrames; frame_step += frame_jump) {
+						await defer(async () => {
+							for (let frame = frame_step; frame < frame_step + frame_jump && frame < totalFrames; ++frame) {
+
+								await render(targetBuffer, def.pattern, frame, assets, { fps: def.fps })
+								await new Promise<void>(resolve => targetBuffer.toBlob(async blob => {
+									if (blob) {
+										ffmpeg.FS("writeFile", `frame-${lpad(frame.toString(), Math.floor(Math.log10(totalFrames) + 1))}.png`, await fetchFile(blob))
+									}
+									resolve()
+								}, "image/png"))
+							}
+						})
+						setRendering({ current: "rendering", progress: (frame_step / totalFrames) })
+					}
+					setRendering({ current: "exporting", progress: 0 })
+					ffmpeg.setProgress(p => {
+						setRendering({ "current": "exporting", progress: p.ratio })
+					})
+					await ffmpeg.run("-framerate", (def.speed * def.fps).toString(), "-pattern_type", "glob", "-i", "frame-*.png", "-loop", "0", "output.webp")
+
+					const filedata = ffmpeg.FS("readFile", "output.webp")
+					window.open(URL.createObjectURL(new Blob([filedata.buffer as any], { type: "image/webp" })))
+
+					for (let frame = 0; frame < totalFrames; ++frame) {
+						ffmpeg.FS("unlink", `frame-${lpad(frame.toString(), Math.floor(Math.log10(totalFrames) + 1))}.png`)
+					}
+					ffmpeg.FS("unlink", "output.webp")
+
+					setRendering({ current: "no" })
+					break;
+				}
 			}
+			
 		},
 		isReady: isFFMpegReady
 	}
