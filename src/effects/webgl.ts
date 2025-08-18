@@ -173,7 +173,10 @@ export type DrawCommand =
 			readonly dim?: Color
 			readonly pulse?: Color
 			readonly extra?: Color
-		}
+		},
+		readonly rotation?: number
+		readonly direction?: number
+		readonly branchCount?: number
 	}
 	| {
 		readonly type: "local-pattern"
@@ -184,7 +187,10 @@ export type DrawCommand =
 			readonly dim?: Color
 			readonly pulse?: Color
 			readonly extra?: Color
-		}
+		},
+		readonly rotation?: number
+		readonly direction?: number
+		readonly branchCount?: number
 	}
 	| {
 		readonly type: "local-effect"
@@ -282,7 +288,7 @@ export const DrawCommand = (value: string): DrawCommand => {
 		case "rotating": return { type: "rotating", speed: 6, children: [] }
 		case "clip-circle": return { type: "clip-circle", origin: [0, 0], radius: 1, children: [] }
 		case "clip-rect": return { type: "clip-rect", origin: [0, 0], size: [1, 1], children: [] }
-		case "pattern": return { type: "pattern", pattern: "full-archimedes", colors: {} }
+		case "pattern": return { type: "pattern", pattern: "full-generic", colors: {}, branchCount: 1, direction: 1, rotation: 1 }
 		case "local-pattern": return {
 			type: "local-pattern",
 			pattern: `uniform float time;
@@ -305,7 +311,10 @@ void main(void) {
 	gl_FragColor =  spiral(time, uv) * dim(uv) * fgColor;
 }
 `,
-			colors: {}
+			colors: {},
+			branchCount: 1,
+			direction: 1,
+			rotation: 1
 		}
 		case "local-effect": return {
 			type: "local-effect",
@@ -437,8 +446,11 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 						bgColor: tree.colors.bg,
 						fgColor: tree.colors.fg,
 						dimColor: tree.colors.dim,
-						pulseColor: tree.colors.pulse
+						pulseColor: tree.colors.pulse,
 					},
+					rotation: tree.rotation,
+					direction: tree.direction,
+					branchCount: tree.branchCount,
 					fps: opts?.fps
 				})
 			}
@@ -457,6 +469,9 @@ export async function renderTree(dom: HTMLCanvasElement, tree: DrawCommand, fram
 						dimColor: tree.colors.dim,
 						pulseColor: tree.colors.pulse
 					},
+					rotation: tree.rotation,
+					direction: tree.direction,
+					branchCount: tree.branchCount,
 				})
 			}
 		}
@@ -867,7 +882,7 @@ export function useRenderVideo(def: RenderDef, assets: Assets): {
 					break;
 				}
 			}
-			
+
 		},
 		isReady: isFFMpegReady
 	}

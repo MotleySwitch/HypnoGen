@@ -15,6 +15,9 @@ export type PatternShader = readonly [BufferRef, ProgramRef, HTMLCanvasElement]
 export function renderSpiralShaderToCanvas(dom: HTMLCanvasElement, frame: number, opts: {
 	readonly shader: PatternShader
 	readonly colors?: Partial<PatternColors>
+	readonly rotation?: number
+	readonly direction?: number
+	readonly branchCount?: number
 	readonly fps?: number
 }) {
 	const src = opts.shader[2]
@@ -24,9 +27,9 @@ export function renderSpiralShaderToCanvas(dom: HTMLCanvasElement, frame: number
 	const context = new WebGLRef(src)
 	const params: ShaderParams = {
 		time: (frame / (opts.fps ?? 60)),
-		rotation: 1,
-		direction: 1,
-		branchCount: 4,
+		rotation: opts.rotation ?? 1,
+		direction: opts.direction ?? 1,
+		branchCount: opts.branchCount ?? 4,
 
 		resolution: [src.width, src.height],
 		aspect: src.width > src.height ? [src.width / src.height, 1.0] : [1.0, src.height / src.width],

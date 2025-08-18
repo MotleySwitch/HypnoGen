@@ -138,7 +138,7 @@ export function renderFlashTextToCanvas(dom: HTMLCanvasElement, frame: number, o
 
 	const stageLengths = opts.stageLengths ?? [15, 15, 15, 15]
 	const totalFramesLength = stageLengths.reduce((p, c) => p + c, 0)
-	const align = opts.style?.align != null ? opts.style.align[((frame / totalFramesLength) | 0) % opts.style.align.length ?? 1] : "center"
+	const align = opts.style?.align != null ? opts.style.align[((frame / totalFramesLength) | 0) % opts.style.align.length] : "center"
 	const style = {
 		lineWidth: opts.style?.lineWidth,
 		...(opts.style?.fillColor != null ? { fillColor: opts.style.fillColor } : {}),

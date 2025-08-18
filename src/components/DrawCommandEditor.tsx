@@ -1,6 +1,6 @@
 import React from "react"
 
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Grid, IconButton, LinearProgress, Menu, MenuItem, Popover, Select, Slider, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, FormControlLabel, FormLabel, Grid, IconButton, LinearProgress, Menu, MenuItem, Popover, Select, Slider, TextField, TextFieldProps, Typography } from "@mui/material"
 import { ExpandMore, FileCopy, Delete, ArrowUpward, ArrowDownward, ContentPasteGo, AddCircle } from "@mui/icons-material"
 
 import { SketchPicker } from "react-color"
@@ -229,6 +229,9 @@ export const TextStyleEditor = ({ label, value, onChange }: TextStyleEditorProps
 					<Grid item xs={6}>
 						<TextField inputProps={{ min: 0, step: 1 }} type="number" label="Line width" fullWidth value={value.lineWidth ?? 1} onChange={v => onChange({ ...value, lineWidth: parseFloat(v.target.value || "0") })} />
 					</Grid>
+					<Grid item xs={12}>
+						<TextField label="Font" value={value.fonts?.join(",") ?? ""} onChange={fonts => onChange({ ...value, fonts: fonts.target.value.split(",") })} />
+					</Grid>
 					<Grid item xs={6}>
 						<ColorEditor label="Fill Color" value={value.fillColor ?? [1, 1, 1, 1]} onChange={fillColor => onChange({ ...value, fillColor })} />
 					</Grid>
@@ -267,6 +270,9 @@ export const SubliminalStyleEditor = ({ label, value, onChange }: TextStyleEdito
 					</Grid>
 					<Grid item xs={6}>
 						<TextField inputProps={{ min: 0, step: 1 }} type="number" label="Line width" fullWidth value={value.lineWidth ?? 1} onChange={v => onChange({ ...value, lineWidth: parseFloat(v.target.value || "0") })} />
+					</Grid>
+					<Grid item xs={12}>
+						<TextField label="Font" value={value.fonts?.join(",") ?? ""} onChange={fonts => onChange({ ...value, fonts: fonts.target.value.split(",") })} />
 					</Grid>
 					<Grid item xs={6}>
 						<ColorEditor label="Fill Color" value={value.fillColor ?? [1, 1, 1, 1]} onChange={fillColor => onChange({ ...value, fillColor })} />
@@ -307,6 +313,9 @@ export const FlashTextStyleEditor = ({ label, value, onChange }: FlashTextStyleE
 					</Grid>
 					<Grid item xs={6}>
 						<TextField inputProps={{ min: 0, step: 1 }} type="number" label="Line width" fullWidth value={value.lineWidth ?? 1} onChange={v => onChange({ ...value, lineWidth: parseFloat(v.target.value || "0") })} />
+					</Grid>
+					<Grid item xs={12}>
+						<TextField label="Font" value={value.fonts?.join(",") ?? ""} onChange={fonts => onChange({ ...value, fonts: fonts.target.value.split(",") })} />
 					</Grid>
 					<Grid item xs={6}>
 						<ColorEditor label="Fill Color" value={value.fillColor ?? [1, 1, 1, 1]} onChange={fillColor => onChange({ ...value, fillColor })} />
@@ -570,7 +579,7 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 			return (
 				<Accordion expanded={open} onChange={(_, open) => setOpen(open)}>
 					<AccordionSummary expandIcon={<ExpandMore />}>
-						<Typography variant="h3">Fade In</Typography>
+						<Typography variant="h3">Fade Out</Typography>
 					</AccordionSummary>
 					<AccordionDetails>
 						<Grid container spacing={3}>
@@ -703,6 +712,26 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 							</Grid>
 							<Grid item xs={12}>
 								<Typography variant="h4" paragraph>Properties</Typography>
+								<Grid container marginBottom={1}>
+									<Grid item xs={12} sm={4} md={4}>
+										<TextField
+											type="number" inputProps={{ step: 1 }}
+											label="Branches"
+											value={value.branchCount} onChange={e => onChange({ ...value, branchCount: parseInt(e.target.value, 10) })} />
+									</Grid>
+									<Grid item xs={12} sm={4} md={4}>
+										<TextField
+											type="number" inputProps={{}}
+											label="Rotation"
+											value={value.rotation} onChange={e => onChange({ ...value, rotation: parseFloat(e.target.value) })} />
+									</Grid>
+									<Grid item xs={12} sm={4} md={4}>
+										<FormControlLabel label="Direction" control={
+											<Checkbox
+												checked={value.direction != 1} onChange={e => onChange({ ...value, direction: e.target.checked ? -1 : 1 })} />
+										} />
+									</Grid>
+								</Grid>
 								<Grid container>
 									<Grid item xs={12} sm={6} md={3}>
 										<ColorEditor label="Background" value={value.colors.bg ?? [0, 0, 0, 0]} onChange={bg => onChange({ ...value, colors: { ...value.colors, bg } })} />
@@ -751,6 +780,26 @@ export const DrawCommandEditor = ({ fps, assets, value, onChange }: DrawCommandE
 							</Grid>
 							<Grid item xs={12}>
 								<Typography variant="h4" paragraph>Properties</Typography>
+								<Grid container marginBottom={1}>
+									<Grid item xs={12} sm={4} md={4}>
+										<TextField
+											type="number" inputProps={{ step: 1 }}
+											label="Branches"
+											value={value.branchCount} onChange={e => onChange({ ...value, branchCount: parseInt(e.target.value, 10) })} />
+									</Grid>
+									<Grid item xs={12} sm={4} md={4}>
+										<TextField
+											type="number" inputProps={{}}
+											label="Rotation"
+											value={value.rotation} onChange={e => onChange({ ...value, rotation: parseFloat(e.target.value) })} />
+									</Grid>
+									<Grid item xs={12} sm={4} md={4}>
+										<FormControlLabel label="Direction" control={
+											<Checkbox
+												checked={value.direction != 1} onChange={e => onChange({ ...value, direction: e.target.checked ? -1 : 1 })} />
+										} />
+									</Grid>
+								</Grid>
 								<Grid container>
 									<Grid item xs={12} sm={6} md={3}>
 										<ColorEditor label="Background" value={value.colors.bg ?? [0, 0, 0, 0]} onChange={bg => onChange({ ...value, colors: { ...value.colors, bg } })} />
