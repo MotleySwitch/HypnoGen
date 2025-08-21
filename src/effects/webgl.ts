@@ -303,11 +303,11 @@ const float PI = radians(180.0);
 const float TAU = PI * 2.0;
 
 float time_pos(float time) { return direction * time * TAU; }
-float uv_pos(vec2 uv) { return (rotation * 12.0) / sqrt(length(uv)); }
+float uv_pos(vec2 uv) { return (rotation * 12.0) * sqrt(length(uv)); }
 float curve_pos(vec2 uv) { return branchCount * atan(uv.y, uv.x); }
 float constrict(float value) { return smoothstep(0.25, 0.75, value); }
 float spiral(float time, vec2 uv) { return constrict(cos(time_pos(time) + uv_pos(uv) + curve_pos(uv))); }
-float dim(vec2 uv) { return smoothstep(0.075, 0.4, length(uv)); }
+float dim(vec2 uv) { return smoothstep(1.0, 0.5, length(uv)); }
 
 void main(void) {
 	vec2 uv = 2.0 * ((gl_FragCoord.xy - resolution.xy * 0.5) / max(resolution.x, resolution.y));
